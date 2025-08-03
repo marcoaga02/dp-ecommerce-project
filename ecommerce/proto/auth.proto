@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "ecommerce/proto/gen"; // folder in which all the generated go files will be stored
+option go_package = "ecommerce/proto/auth"; // folder in which all the generated go files will be stored
 
 message LoginRequest {
     string username = 1;

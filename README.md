@@ -16,5 +16,6 @@ dp-ecommerce-project/
 |
 ├── deploy/ # .yml files for docker compose
 |
+├── Makefile
 └── README.md
 ```

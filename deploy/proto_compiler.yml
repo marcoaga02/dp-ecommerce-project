@@ -4,6 +4,5 @@ services:
       context: ../ecommerce/proto # Location of the Dockerfile
     volumes:
       - ../ecommerce/proto:/app          # Mount the /proto folder in /app in the container
-      - ../ecommerce/proto/gen:/app/gen  # Mount the generation output folder
     working_dir: /app
     entrypoint: ["/usr/local/bin/compile-proto"] # executes the script using the command line arguments specified at docker compose

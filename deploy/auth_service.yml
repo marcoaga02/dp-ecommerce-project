@@ -1,0 +1,47 @@
+services:
+  auth:
+    build:
+      context: ../ecommerce
+      dockerfile: auth-service/Dockerfile
+      args:
+        BUILD_MODE: ${BUILD_MODE:-dev}
+      target: run
+    restart: always
+    depends_on:
+      auth_db:
+        condition: service_healthy
+    expose:
+      - "${GRPC_PORT}"
+    environment:
+      SERVICE_PORT: ${GRPC_PORT}
+    networks:
+      - ecommerce_net
+    profiles: ["run"]
+
+  auth_db:
+    image: mariadb:latest
+    restart: always
+    expose:
+      - "${DB_PORT}"
+    environment:
+      MARIADB_ROOT_PASSWORD: DpWim2025@
+    volumes:
+      - ../ecommerce/auth-service/db/setup.sql:/docker-entrypoint-initdb.d/init.sql
+      - auth_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 60s
+      start_interval: 10s
+      interval: 60s
+      timeout: 15s
+      retries: 10
+    networks:
+      - ecommerce_net
+    profiles: ["run"]
+
+networks:
+  ecommerce_net:
+    name: ecommerce_net
+
+volumes:
+  auth_db:

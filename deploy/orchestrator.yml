@@ -1,0 +1,20 @@
+services:
+  orchestrator:
+    build:
+      context: ../ecommerce
+      dockerfile: orchestrator/Dockerfile
+      args:
+        BUILD_MODE: ${BUILD_MODE:-dev}
+      target: run
+    restart: always
+    ports:
+      - "${WEB_EXPOSE_PORT}:${WEB_SERVICE_PORT}"
+    expose:
+      - "${GRPC_PORT}"
+    networks:
+      - "ecommerce_net"
+    profiles: ["run"]
+
+networks:
+  ecommerce_net:
+    name: ecommerce_net
