@@ -13,7 +13,12 @@ services:
     expose:
       - "${GRPC_PORT}"
     environment:
-      SERVICE_PORT: ${GRPC_PORT}
+      GRPC_PORT: ${GRPC_PORT}
+      DB_HOST: auth_db
+      DB_NAME: auth
+      DB_PORT: ${DB_PORT}
+      DB_PASSWORD: ${DB_PASSWORD}
+      LOG_LEVEL: ${LOG_LEVEL}
     networks:
       - ecommerce_net
     profiles: ["run"]
@@ -24,7 +29,7 @@ services:
     expose:
       - "${DB_PORT}"
     environment:
-      MARIADB_ROOT_PASSWORD: DpWim2025@
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
       - ../ecommerce/auth-service/db/setup.sql:/docker-entrypoint-initdb.d/init.sql
       - auth_db:/var/lib/mysql

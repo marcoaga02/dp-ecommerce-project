@@ -6,6 +6,7 @@ WORKDIR /app
 
 COPY auth-service ./auth-service
 COPY proto ./proto
+COPY logger ./logger
 
 WORKDIR /app/auth-service
 

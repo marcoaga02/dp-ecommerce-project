@@ -18,6 +18,13 @@ package auth;
 
 option go_package = "ecommerce/proto/auth"; // folder in which all the generated go files will be stored
 
+enum Role {
+  UNSPECIFIED = 0;
+  CLIENT = 1;
+  ADMIN = 2;
+}
+
+// LOGIN
 message LoginRequest {
     string username = 1;
     string password = 2;
@@ -26,8 +33,10 @@ message LoginRequest {
 message LoginResponse {
     bool success = 1;
     string error_message = 2;
+    Role role = 3;
 }
 
+// REGISTRATION
 message RegisterRequest {
     string username = 1;
     string password = 2;
@@ -40,6 +49,7 @@ message RegisterResponse {
     string error_message = 2;
 }
 
+// PASSWORD CHANGE
 message ChangePasswordRequest {
   string username = 1;
   string old_password = 2;
@@ -51,8 +61,33 @@ message ChangePasswordResponse {
     string error_message = 2;
 }
 
+// SET USER ROLE
+message SetUserRoleRequest {
+    string username = 1;
+    Role role = 2;
+}
+
+message SetUserRoleResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+// GET USER ROLE
+message GetUserRoleRequest {
+  string username = 1;
+}
+
+message GetUserRoleResponse {
+  bool success = 1;
+  Role role = 2;
+  string error_message = 3;
+}
+
+// SERVICES
 service Authentication {
     rpc Login(LoginRequest) returns (LoginResponse);
     rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
+    rpc SetUserRole(SetUserRoleRequest) returns (SetUserRoleResponse);
+    rpc GetUserRole(GetUserRoleRequest) returns (GetUserRoleResponse);
 }

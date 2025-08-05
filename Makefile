@@ -26,7 +26,7 @@ stop:
 	docker compose --profile run $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) stop $(target_services)
 
 down:
-	docker compose --profile run $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) down --volumes $(target_services)
+	docker compose --profile run $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) down -v $(target_services)
 
 build_proto_image:
 	docker compose -f $(YML_DIR)/$(YML_PROTO_COMPILER) build
