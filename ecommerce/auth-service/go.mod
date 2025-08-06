@@ -4,6 +4,10 @@ go 1.23.0
 
 toolchain go1.23.11
 
+replace github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto => ../proto
+
+replace github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger => ../logger
+
 require (
 	github.com/google/uuid v1.6.0
 	github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger v0.0.0-00010101000000-000000000000
@@ -25,7 +29,3 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 )
-
-replace github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto => ../proto
-
-replace github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger => ../logger

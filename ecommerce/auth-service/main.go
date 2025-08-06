@@ -13,6 +13,8 @@ import (
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/auth-service/internal/repository"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
 	pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/auth"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func main() {
@@ -48,6 +50,11 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterAuthenticationServer(grpcServer, authServer)
+
+	// gRPC Health Server
+	healthServer := health.NewServer()
+	healthServer.SetServingStatus("auth.Authentication", healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(grpcServer, healthServer)
 
 	myLogger.Info("Auth service listening on port %s", port)
 

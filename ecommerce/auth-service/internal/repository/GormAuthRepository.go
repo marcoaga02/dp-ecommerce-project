@@ -205,9 +205,13 @@ func (r *GormAuthRepository) ChangePassword(username, old_password, new_password
 //   - bool: true if the role was updated, false if no update was needed (e.g., role was already set) or an error occurs
 //   - error: non-nil if any error occurs
 func (r *GormAuthRepository) SetUserRole(username string, role pb.Role) (bool, error) {
-	existingUser, currentRole, err := r.getUserAndRoleByUsername(username)
+	success, currentRole, err := r.GetUserRole(username)
 	if err != nil {
 		return false, err
+	}
+	if !success {
+		r.logger.Error("Failed to retrieve role for user '%s'", username)
+		return false, fmt.Errorf("Failed to retrieve role for user '%s'", username)
 	}
 
 	if currentRole == role {
@@ -222,7 +226,8 @@ func (r *GormAuthRepository) SetUserRole(username string, role pb.Role) (bool, e
 	}
 
 	err = r.db.
-		Model(existingUser).
+		Model(&model.User{}).
+		Where("username = ?", username).
 		Update("role_id", newRole).Error
 	if err != nil {
 		r.logger.Error("Error updating role for user '%s': %v", username, err)
@@ -235,9 +240,6 @@ func (r *GormAuthRepository) SetUserRole(username string, role pb.Role) (bool, e
 
 // GetUserRole retrieves the role of a user given its username.
 //
-// It returns a boolean indicating whether the role was found, the role itself (as a protobuf enum),
-// and an error if something went wrong (e.g., user not found or role invalid).
-//
 // Parameters:
 //   - username: the username of the user whose role is being retrieved.
 //
@@ -246,10 +248,22 @@ func (r *GormAuthRepository) SetUserRole(username string, role pb.Role) (bool, e
 //   - pb.Role: the user's role as defined in the protobuf enum (pb.Role_UNSPECIFIED if an error occurs).
 //   - error: non-nil if an error occurred during the process (e.g., DB error, unknown role).
 func (r *GormAuthRepository) GetUserRole(username string) (bool, pb.Role, error) {
-	_, role, err := r.getUserAndRoleByUsername(username)
+	user, err := r.getUserByUsername(username)
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			r.logger.Error("User with username '%s' does not exist", username)
+		} else {
+			r.logger.Error("Error retrieving user '%s': %v", username, err)
+		}
 		return false, pb.Role_UNSPECIFIED, err
 	}
+
+	role, ok := roleMapDb2Enum[user.RoleID]
+	if !ok {
+		r.logger.Error("Unknown role '%d' found in DB for user '%s'", user.RoleID, username)
+		return false, pb.Role_UNSPECIFIED, fmt.Errorf("Invalid role '%d' found in DB for user", user.RoleID)
+	}
+
 	return true, role, nil
 }
 
@@ -280,36 +294,6 @@ func (r *GormAuthRepository) getUserByUsername(username string) (*model.User, er
 }
 
 
-// getUserAndRoleByUsername retrieves the user by username and maps their DB role to pb.Role.
-//
-// Parameters:
-//   - username: the username of the user to retrieve.
-//
-// Returns:
-//   - *model.User: the user model if found.
-//   - pb.Role: the user's role as protobuf enum (pb.Role).
-//   - error: non-nil if the user is not found or the role is invalid.
-func (r *GormAuthRepository) getUserAndRoleByUsername(username string) (*model.User, pb.Role, error) {
-	user, err := r.getUserByUsername(username)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			r.logger.Error("User with username '%s' does not exist", username)
-		} else {
-			r.logger.Error("Error retrieving user '%s': %v", username, err)
-		}
-		return nil, pb.Role_UNSPECIFIED, err
-	}
-
-	role, ok := roleMapDb2Enum[user.RoleID]
-	if !ok {
-		r.logger.Error("Unknown role '%d' found in DB for user '%s'", user.RoleID, username)
-		return nil, pb.Role_UNSPECIFIED, fmt.Errorf("Invalid role '%d' found in DB for user", user.RoleID)
-	}
-
-	return user, role, nil
-}
-
-
 // CreateDefaultUsers ensures that the default users — one admin and one client — exist in the database.
 //
 // It checks for the existence of these users by username or email, and skips creation if they are already present.
@@ -318,21 +302,17 @@ func (r *GormAuthRepository) getUserAndRoleByUsername(username string) (*model.U
 // Returns:
 //   - error: non-nil if any database operation fails
 func (r *GormAuthRepository) CreateDefaultUsers() error {
-	defaultUsers := []model.User{
-		{
-			Username:     "admin",
-			Email:        "admin@example.com",
-			Phone:        "0000000000",
-			PasswordHash: "admin123",
-			RoleID: 	  RoleAdmin,
-		},
-		{
-			Username:     "demo-client",
-			Email:        "demo-client@example.com",
-			Phone:        "1111111111",
-			PasswordHash: "demo123",
-			RoleID: 	  RoleClient,
-		},
+	type DefaultUser struct {
+    Username string
+    Email    string
+    Phone    string
+    Password string
+    RoleID   int
+	}
+
+	defaultUsers := []DefaultUser{
+		{Username: "admin", Email: "admin@example.com", Phone: "0000000000", Password: "admin123", RoleID: RoleAdmin},
+		{Username: "demo-client", Email: "demo-client@example.com", Phone: "1111111111", Password: "demo123", RoleID: RoleClient},
 	}
 
 	for _, user := range defaultUsers {
@@ -346,7 +326,7 @@ func (r *GormAuthRepository) CreateDefaultUsers() error {
             return err
         }
 
-        success, err := r.Register(user.Username, user.PasswordHash, user.Email, user.Phone)
+        success, err := r.Register(user.Username, user.Password, user.Email, user.Phone)
         if err != nil {
             r.logger.Error("Error registering default user '%s': %v", user.Username, err)
             return err

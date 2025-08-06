@@ -28,4 +28,8 @@ WORKDIR /app
 
 COPY --from=build /app/auth-service/main /app/main
 
+# Add the grpc_health_probe
+ADD https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/v0.4.16/grpc_health_probe-linux-amd64 /bin/grpc_health_probe
+RUN chmod +x /bin/grpc_health_probe
+
 CMD ["./main"]
