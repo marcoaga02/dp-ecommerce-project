@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"errors"
 	
 	"github.com/google/uuid"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/auth-service/internal/model"
@@ -86,8 +85,8 @@ func (r *GormAuthRepository) Login(username, password string) (bool, pb.Role, er
 
 	role, ok := roleMapDb2Enum[user.RoleID]
 	if !ok {
-		r.logger.Error("Unknown role '%d' for user '%s'", user.Role, username)
-		return false, pb.Role_UNSPECIFIED, fmt.Errorf("Invalid role '%s' for user", user.Role)
+		r.logger.Error("Unknown role '%d' for user '%s'", user.RoleID, username)
+		return false, pb.Role_UNSPECIFIED, fmt.Errorf("Invalid role '%d' for user", user.RoleID)
 	}
 
 	return true, role, nil
@@ -100,7 +99,7 @@ func (r *GormAuthRepository) Login(username, password string) (bool, pb.Role, er
 //   - username: desired unique username
 //   - password: plaintext password (will be hashed before storing)
 //   - email: unique email address
-//   - phone: optional phone number
+//   - phone: phone number
 //
 // Returns:
 //   - bool: true if registration is successful, false if username or email already exists
@@ -133,7 +132,7 @@ func (r *GormAuthRepository) Register(username, password, email, phone string) (
 		PasswordHash: hashedPassword,
 		Email:        email,
 		Phone:        phone,
-		RoleID:		  RoleClient,
+		RoleID:		  RoleClient, // default for every new user
 	}
 
 	if err := r.db.Create(&newUser).Error; err != nil {
@@ -153,17 +152,17 @@ func (r *GormAuthRepository) Register(username, password, email, phone string) (
 //   - new_password: new plaintext password to replace the old one
 //
 // Returns:
-//   - bool: true if password updated successfully, false if old password incorrect
+//   - bool: true if password updated successfully, false if old password incorrect or an error occurs
 //   - error: non-nil if unexpected failure occurs
 func (r *GormAuthRepository) ChangePassword(username, old_password, new_password string) (bool, error) {
-	correctData, _, err := r.Login(username, old_password)
+	success, _, err := r.Login(username, old_password)
 
 	if err != nil {
 		r.logger.Error("Error during the login of the user '%s': %v", username, err)
 		return false, err
 	}
 
-	if !correctData {
+	if !success {
 		r.logger.Warn("Incorrect old password for user '%s'", username)
 		return false, nil
 	}
@@ -174,7 +173,8 @@ func (r *GormAuthRepository) ChangePassword(username, old_password, new_password
 		return false, err
 	}
 
-	err = r.db.Model(&model.User{}).
+	err = r.db.
+		Model(&model.User{}).
 		Where("username = ?", username).
 		Update("password_hash", newHashedPassword).Error
 	
@@ -193,7 +193,7 @@ func (r *GormAuthRepository) ChangePassword(username, old_password, new_password
 //
 // Then, it verifies the current role of the user:
 //   - If the current role is invalid, returns an error.
-//   - If the current role is the same as the requested role, logs a warning and returns false without error.
+//   - If the current role is the same as the requested role, returns false without error.
 //
 // Next, it validates the requested role and if valid, updates the user's role in the database.
 //
@@ -202,8 +202,8 @@ func (r *GormAuthRepository) ChangePassword(username, old_password, new_password
 //   - role: the new role to assign to the user (pb.Role enum)
 //
 // Returns:
-//   - bool: true if the role was updated, false if no update was needed (e.g., role was already set)
-//   - error: non-nil if any error occurs during user lookup or database update
+//   - bool: true if the role was updated, false if no update was needed (e.g., role was already set) or an error occurs
+//   - error: non-nil if any error occurs
 func (r *GormAuthRepository) SetUserRole(username string, role pb.Role) (bool, error) {
 	existingUser, currentRole, err := r.getUserAndRoleByUsername(username)
 	if err != nil {
@@ -221,7 +221,9 @@ func (r *GormAuthRepository) SetUserRole(username string, role pb.Role) (bool, e
 		return false, fmt.Errorf("Invalid role value '%v' provided", role)
 	}
 
-	err = r.db.Model(existingUser).Update("role", newRole).Error
+	err = r.db.
+		Model(existingUser).
+		Update("role_id", newRole).Error
 	if err != nil {
 		r.logger.Error("Error updating role for user '%s': %v", username, err)
 		return false, err
@@ -241,7 +243,7 @@ func (r *GormAuthRepository) SetUserRole(username string, role pb.Role) (bool, e
 //
 // Returns:
 //   - bool: true if the role was successfully retrieved; false otherwise.
-//   - pb.Role: the user's role as defined in the protobuf enum (pb.Role_UNSPECIFIED if failed).
+//   - pb.Role: the user's role as defined in the protobuf enum (pb.Role_UNSPECIFIED if an error occurs).
 //   - error: non-nil if an error occurred during the process (e.g., DB error, unknown role).
 func (r *GormAuthRepository) GetUserRole(username string) (bool, pb.Role, error) {
 	_, role, err := r.getUserAndRoleByUsername(username)
@@ -254,7 +256,7 @@ func (r *GormAuthRepository) GetUserRole(username string) (bool, pb.Role, error)
 
 // getUserByUsername fetches a user from the database by its username.
 //
-// It performs a case-sensitive search in the users table and returns the user model
+// It performs a search in the users table and returns the user model
 // if found, or an error if not found or if a DB issue occurred.
 //
 // Parameters:
@@ -265,10 +267,15 @@ func (r *GormAuthRepository) GetUserRole(username string) (bool, pb.Role, error)
 //   - error: non-nil if user not found or a database error occurs.
 func (r *GormAuthRepository) getUserByUsername(username string) (*model.User, error) {
 	var user model.User
-	err := r.db.Where("username = ?", username).First(&user).Error
+	err := r.db.
+		Preload("Role").
+		Where("username = ?", username).
+		First(&user).Error
+	
 	if err != nil {
 		return nil, err
 	}
+
 	return &user, nil
 }
 
@@ -280,7 +287,7 @@ func (r *GormAuthRepository) getUserByUsername(username string) (*model.User, er
 //
 // Returns:
 //   - *model.User: the user model if found.
-//   - pb.Role: the user's role as protobuf enum.
+//   - pb.Role: the user's role as protobuf enum (pb.Role).
 //   - error: non-nil if the user is not found or the role is invalid.
 func (r *GormAuthRepository) getUserAndRoleByUsername(username string) (*model.User, pb.Role, error) {
 	user, err := r.getUserByUsername(username)
@@ -295,8 +302,8 @@ func (r *GormAuthRepository) getUserAndRoleByUsername(username string) (*model.U
 
 	role, ok := roleMapDb2Enum[user.RoleID]
 	if !ok {
-		r.logger.Error("Unknown role '%d' found in DB for user '%s'", user.Role, username)
-		return nil, pb.Role_UNSPECIFIED, fmt.Errorf("Invalid role '%d' found in DB for user", user.Role)
+		r.logger.Error("Unknown role '%d' found in DB for user '%s'", user.RoleID, username)
+		return nil, pb.Role_UNSPECIFIED, fmt.Errorf("Invalid role '%d' found in DB for user", user.RoleID)
 	}
 
 	return user, role, nil
@@ -306,54 +313,63 @@ func (r *GormAuthRepository) getUserAndRoleByUsername(username string) (*model.U
 // CreateDefaultUsers ensures that the default users — one admin and one client — exist in the database.
 //
 // It checks for the existence of these users by username or email, and skips creation if they are already present.
-// If any database error occurs during the checking or creation process, it returns the error immediately.
+// If any database error occurs during the checking or creation process, it returns the error.
 //
 // Returns:
 //   - error: non-nil if any database operation fails
 func (r *GormAuthRepository) CreateDefaultUsers() error {
 	defaultUsers := []model.User{
 		{
-			ID:           uuid.New().String(),
 			Username:     "admin",
 			Email:        "admin@example.com",
 			Phone:        "0000000000",
-			PasswordHash: HashPasswordOrPanic("admin123"),
-			RoleID: 		  RoleAdmin,
+			PasswordHash: "admin123",
+			RoleID: 	  RoleAdmin,
 		},
 		{
-			ID:           uuid.New().String(),
 			Username:     "demo-client",
 			Email:        "demo-client@example.com",
 			Phone:        "1111111111",
-			PasswordHash: HashPasswordOrPanic("demo123"),
-			RoleID:		  RoleClient,
+			PasswordHash: "demo123",
+			RoleID: 	  RoleClient,
 		},
 	}
 
 	for _, user := range defaultUsers {
-		var existing model.User
-		err := r.db.
-			Where("username = ? OR email = ?", user.Username, user.Email).
-			First(&existing).Error
+        _, err := r.getUserByUsername(user.Username)
+        if err == nil {
+            r.logger.Info("Default user '%s' already exists", user.Username)
+            continue
+        }
+        if err != nil && err != gorm.ErrRecordNotFound {
+            r.logger.Error("Error checking existence of user '%s': %v", user.Username, err)
+            return err
+        }
 
-		if err == nil {
-			r.logger.Info("Default user '%s' already exists", user.Username)
-			continue
-		}
-
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-			r.logger.Error("Error checking existence of user '%s': %v", user.Username, err)
-			return err
-		}
-
-		if err := r.db.Create(&user).Error; err != nil {
-			r.logger.Error("Error creating default user '%s': %v", user.Username, err)
-			return err
-		}
-
-		r.logger.Info("Default user '%s' created successfully", user.Username)
-	}
-	return nil
+        success, err := r.Register(user.Username, user.PasswordHash, user.Email, user.Phone)
+        if err != nil {
+            r.logger.Error("Error registering default user '%s': %v", user.Username, err)
+            return err
+        }
+        if success {
+            r.logger.Info("Default user '%s' created successfully", user.Username)
+			if user.RoleID == RoleAdmin {
+				changed, err := r.SetUserRole(user.Username, pb.Role_ADMIN)
+				if err != nil {
+					r.logger.Error("Failed to set role ADMIN for user '%s': %v", user.Username, err)
+					return err
+				}
+				if changed {
+					r.logger.Info("Role ADMIN set successfully for user '%s'", user.Username)
+				} else {
+					r.logger.Warn("Role for user '%s' was already ADMIN", user.Username)
+				}
+			}
+        } else {
+            r.logger.Warn("Default user '%s' not created: another user has the same username or email", user.Username)
+        }
+    }
+    return nil
 }
 
 // HashPassword hashes the given plaintext password using bcrypt.
@@ -380,24 +396,4 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
-}
-
-// HashPasswordOrPanic hashes the given plaintext password using bcrypt.
-//
-// It panics if hashing fails, intended only for default user setup.
-//
-// Parameters:
-//   - password: the plaintext password to hash
-//
-// Returns:
-//   - string: the bcrypt hashed password
-//
-// Panics:
-//	 -  if hashing fails, intended only for default user setup.
-func HashPasswordOrPanic(password string) string {
-	hash, err := HashPassword(password)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to hash default password: %v", err))
-	}
-	return hash
 }

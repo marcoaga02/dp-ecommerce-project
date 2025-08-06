@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/auth-service/internal/repository"
-	pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/auth"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
+	pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/auth"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
-
 
 // AuthServer implements the authentication service gRPC server.
 //
@@ -47,8 +48,17 @@ func NewAuthServer(db repository.AuthDB, logger logger.Logger) *AuthServer {
 //       - Success: true if authentication succeeded, false otherwise.
 //       - Role: the user's role (pb.Role_UNSPECIFIED if authentication fails).
 //       - ErrorMessage: description of error or failure reason.
-//   - error: non-nil only if an internal error occurred during the login process.
+//   - error: non-nil only if an internal error occurred during the login process or there are invalid input parameters.
 func (s *AuthServer) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginResponse, error) {
+	if in.Username == "" || in.Password == "" {
+		s.logger.Warn("Username or password empty in login request")
+		return &pb.LoginResponse{
+			Success: false,
+			Role: pb.Role_UNSPECIFIED,
+			ErrorMessage: "Username and password must be provided and not empty",
+		}, status.Error(codes.InvalidArgument, "Username and password must be provided and not empty")
+	}
+
 	success, role, err := s.db.Login(in.Username, in.Password)
 
 	if err != nil {
@@ -85,8 +95,16 @@ func (s *AuthServer) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginR
 //
 // Returns:
 //   - RegisterResponse indicating success or failure.
-//   - error if an internal failure occurs.
+//   - error if an internal failure occurs or there are invalid input parameters.
 func (s *AuthServer) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	if in.Username == "" || in.Password == "" || in.Email == "" || in.Phone == ""{
+		s.logger.Warn("Username, password, email or phone empty in register request")
+		return &pb.RegisterResponse{
+			Success: false,
+			ErrorMessage: "Username, password, email and phone must be provided and not empty",
+		}, status.Error(codes.InvalidArgument, "Username, password, email and phone must be provided and not empty")
+	}
+
 	success, err := s.db.Register(in.Username, in.Password, in.Email, in.Phone)
 
 	if err != nil {
@@ -120,8 +138,16 @@ func (s *AuthServer) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.
 //
 // Returns:
 //   - ChangePasswordResponse indicating success or failure.
-//   - error if an internal failure occurs.
+//   - error if an internal failure occurs or there are invalid input parameters.
 func (s *AuthServer) ChangePassword(ctx context.Context, in *pb.ChangePasswordRequest) (*pb.ChangePasswordResponse, error) {
+	if in.Username == "" || in.OldPassword == "" || in.NewPassword == ""{
+		s.logger.Warn("Username, old password or new password empty in change password request")
+		return &pb.ChangePasswordResponse{
+			Success: false,
+			ErrorMessage: "Username, old password and new password must be provided and not empty",
+		}, status.Error(codes.InvalidArgument, "Username, old password and new password must be provided and not empty")
+	}
+
 	success, err := s.db.ChangePassword(in.Username, in.OldPassword, in.NewPassword)
 
 	if err != nil {
@@ -155,11 +181,19 @@ func (s *AuthServer) ChangePassword(ctx context.Context, in *pb.ChangePasswordRe
 //
 // Returns:
 //   - SetUserRoleResponse indicating success or failure.
-//   - error if an internal failure occurs during the operation.
+//   - error if an internal failure occurs during the operation or there are invalid input parameters.
 //
 // Notes:
-//   - If the user already has the specified role, the response indicates no change without an error.
+//   - If the user already has the specified role, the response indicates no change (i.e. fails) without an error.
 func (s *AuthServer) SetUserRole(ctx context.Context, in *pb.SetUserRoleRequest) (*pb.SetUserRoleResponse, error) {
+	if in.Username == "" || in.Role == pb.Role_UNSPECIFIED {
+		s.logger.Warn("Username empty or unspecified Role in set user role request")
+		return &pb.SetUserRoleResponse{
+			Success: false,
+			ErrorMessage: "Username must be provided and not empty and the role must not be Unspecified",
+		}, status.Error(codes.InvalidArgument, "Username must be provided and not empty and the role must not be Unspecified")
+	}
+
 	success, err := s.db.SetUserRole(in.Username, in.Role)
 
 	if err != nil {
@@ -195,6 +229,15 @@ func (s *AuthServer) SetUserRole(ctx context.Context, in *pb.SetUserRoleRequest)
 //   - GetUserRoleResponse with the user's role and success status.
 //   - error if an internal failure occurs during the operation.
 func (s *AuthServer) GetUserRole(ctx context.Context, in *pb.GetUserRoleRequest) (*pb.GetUserRoleResponse, error) {
+	if in.Username == "" {
+		s.logger.Warn("Username empty in get user role request")
+		return &pb.GetUserRoleResponse{
+			Success: false,
+			Role: pb.Role_UNSPECIFIED,
+			ErrorMessage: "Username must be provided and not empty",
+		}, status.Error(codes.InvalidArgument, "Username must be provided and not empty")
+	}
+
 	success, role, err := s.db.GetUserRole(in.Username)
 
 	if err != nil {
