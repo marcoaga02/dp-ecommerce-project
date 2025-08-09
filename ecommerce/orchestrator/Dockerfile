@@ -6,6 +6,7 @@ WORKDIR /app
 
 COPY orchestrator ./orchestrator
 COPY proto ./proto
+COPY logger ./logger
 
 WORKDIR /app/orchestrator
 
@@ -26,5 +27,6 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /app
 
 COPY --from=build /app/orchestrator/main /app/main
+COPY --from=build /app/orchestrator/templates /app/orchestrator/templates
 
 CMD ["./main"]
