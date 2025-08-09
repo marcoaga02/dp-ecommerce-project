@@ -148,14 +148,14 @@ func (r *GormAuthRepository) Register(username, password, email, phone string) (
 //
 // Parameters:
 //   - username: the username whose password will be changed
-//   - old_password: current plaintext password, used to verify identity
-//   - new_password: new plaintext password to replace the old one
+//   - oldPassword: current plaintext password, used to verify identity
+//   - newPassword: new plaintext password to replace the old one
 //
 // Returns:
 //   - bool: true if password updated successfully, false if old password incorrect or an error occurs
 //   - error: non-nil if unexpected failure occurs
-func (r *GormAuthRepository) ChangePassword(username, old_password, new_password string) (bool, error) {
-	success, _, err := r.Login(username, old_password)
+func (r *GormAuthRepository) ChangePassword(username, oldPassword, newPassword string) (bool, error) {
+	success, _, err := r.Login(username, oldPassword)
 
 	if err != nil {
 		r.logger.Error("Error during the login of the user '%s': %v", username, err)
@@ -167,7 +167,7 @@ func (r *GormAuthRepository) ChangePassword(username, old_password, new_password
 		return false, nil
 	}
 
-	newHashedPassword, err := HashPassword(new_password)
+	newHashedPassword, err := HashPassword(newPassword)
 	if err != nil {
 		r.logger.Error("Error hashing the new password for user '%s': %v", username, err)
 		return false, err

@@ -18,7 +18,7 @@ import (
 )
 
 func main() {
-	logLevel := ParseLogLevel("LOG_LEVEL")
+	logLevel := logger.ParseLogLevel("LOG_LEVEL")
 	myLogger := logger.NewStdLogger(logLevel, "auth-service")
 
 	port := GetEnvOrFatal(myLogger, "GRPC_PORT")
@@ -78,31 +78,5 @@ func GetEnvOrFatal(logger logger.Logger, key string) string {
         logger.Fatal("Environment variable %s not set", key)
     }
     return val
-}
-
-// ParseLogLevel reads the environment variable identified by key and converts its value
-// to the corresponding logger.Level.
-//
-// If the environment variable is not set or contains an unrecognized value, it returns logger.Info as the default.
-//
-// Parameters:
-//   - key: the name of the environment variable to read
-//
-// Returns:
-//   - logger.Level: the corresponding log level constant
-func ParseLogLevel(key string) logger.Level {
-    level := os.Getenv(key)
-    switch level {
-    case "debug", "DEBUG":
-        return logger.Debug
-    case "info", "INFO":
-        return logger.Info
-    case "warn", "WARN", "warning", "WARNING":
-        return logger.Warn
-    case "error", "ERROR":
-        return logger.Error
-    default:
-        return logger.Info // default level
-    }
 }
 
