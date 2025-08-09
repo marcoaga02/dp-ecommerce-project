@@ -4,13 +4,23 @@ services:
       context: ../ecommerce
       dockerfile: orchestrator/Dockerfile
       args:
-        BUILD_MODE: ${BUILD_MODE:-dev}
+        BUILD_MODE: "${BUILD_MODE:-dev}"
       target: run
     restart: always
     ports:
       - "${WEB_EXPOSE_PORT}:${WEB_SERVICE_PORT}"
     expose:
       - "${GRPC_PORT}"
+    environment:
+      GRPC_PORT: "${GRPC_PORT}"
+      WEB_SERVICE_PORT: "${WEB_SERVICE_PORT}"
+      SESSION_SECRET: "GxdQCLc53PqK#*sNeSq5"
+      AUTH_NAME: "${AUTH_NAME}"
+      PRODUCT_NAME: "${PRODUCT_NAME}"
+      CART_NAME: "${CART_NAME}"
+      ORDER_NAME: "${ORDER_NAME}"
+      LOG_LEVEL: "${LOG_LEVEL}"
+
     networks:
       - "ecommerce_net"
     profiles: ["run"]

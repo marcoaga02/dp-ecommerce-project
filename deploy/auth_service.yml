@@ -1,5 +1,6 @@
 services:
   auth:
+    container_name: ${AUTH_NAME}
     build:
       context: ../ecommerce
       dockerfile: auth-service/Dockerfile
@@ -21,6 +22,12 @@ services:
       LOG_LEVEL: ${LOG_LEVEL}
     networks:
       - ecommerce_net
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=localhost:${GRPC_PORT}"]
+      start_period: 5s
+      interval: 10s
+      timeout: 3s
+      retries: 10
     profiles: ["run"]
 
   auth_db:
