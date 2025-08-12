@@ -32,7 +32,7 @@ func main() {
 	defer serviceManager.Stop()
 
 	authClient := clients.NewAuthClient("auth", serviceManager, logger.NewStdLogger(logLevel, "auth-client"), 1*time.Second)
-	srv_orch := orchestrator.NewServiceOrchestrator(*authClient, logger.NewStdLogger(logLevel, "service-orchestrator"))
+	srv_orch := orchestrator.NewServiceOrchestrator(authClient, logger.NewStdLogger(logLevel, "service-orchestrator"))
 
 	sessionSecret := GetEnvOrFatal(myLogger, "SESSION_SECRET")
 	router := gin.Default()

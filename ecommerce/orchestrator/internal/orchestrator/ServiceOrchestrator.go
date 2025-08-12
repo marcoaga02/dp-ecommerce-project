@@ -2,13 +2,13 @@ package orchestrator
 
 import (
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
-	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/orchestrator/internal/grpc/clients"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/orchestrator/internal/model"
+	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/orchestrator/pkg/interfaces"
 )
 
 // ServiceOrchestrator
 type ServiceOrchestrator struct {
-	authClient clients.AuthClient
+	authClient interfaces.AuthClientInterface
 	// productClient clients.productClient
 	// cartClient clients.cartClient
 	// orderClient clients.orderClient
@@ -17,7 +17,7 @@ type ServiceOrchestrator struct {
 }
 
 // NewServiceOrchestrator creates an instance of the struct ServiceOrchestrator
-func NewServiceOrchestrator(authClient clients.AuthClient, log logger.Logger) *ServiceOrchestrator {
+func NewServiceOrchestrator(authClient interfaces.AuthClientInterface, log logger.Logger) *ServiceOrchestrator {
 	return &ServiceOrchestrator{
 		authClient: authClient,
 		// productClient: productClient
