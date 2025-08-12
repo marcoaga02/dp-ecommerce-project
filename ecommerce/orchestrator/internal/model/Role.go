@@ -7,36 +7,33 @@ import (
 type Role string
 
 const (
-    RoleUnspecified Role = "unspecified"
-    RoleClient      Role = "client"
-    RoleAdmin       Role = "admin"
+	RoleUnspecified Role = "unspecified"
+	RoleClient      Role = "client"
+	RoleAdmin       Role = "administrator"
 )
 
-
-func ProtoRoleToRole(pr pb.Role) Role {
-    switch pr {
-    case pb.Role_CLIENT:
-        return RoleClient
-    case pb.Role_ADMIN:
-        return RoleAdmin
-    default:
-        return RoleUnspecified
-    }
+func ProtoRoleToModelRole(pr pb.Role) Role {
+	switch pr {
+	case pb.Role_CLIENT:
+		return RoleClient
+	case pb.Role_ADMIN:
+		return RoleAdmin
+	default:
+		return RoleUnspecified
+	}
 }
 
-
-func RoleToProtoRole(r Role) pb.Role {
-    switch r {
-    case RoleClient:
-        return pb.Role_CLIENT
-    case RoleAdmin:
-        return pb.Role_ADMIN
-    default:
-        return pb.Role_UNSPECIFIED
-    }
+func ModelRoleToProtoRole(r Role) pb.Role {
+	switch r {
+	case RoleClient:
+		return pb.Role_CLIENT
+	case RoleAdmin:
+		return pb.Role_ADMIN
+	default:
+		return pb.Role_UNSPECIFIED
+	}
 }
-
 
 func (r Role) String() string {
-    return string(r)
+	return string(r)
 }

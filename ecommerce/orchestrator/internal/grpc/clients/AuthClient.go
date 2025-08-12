@@ -5,63 +5,43 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/orchestrator/internal/manager"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
+	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/orchestrator/internal/manager"
 	pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/auth"
 )
-
 
 // AuthClient is a gRPC client for communicating with the authentication service.
 type AuthClient struct {
 	serviceName string
-	sm     *manager.ServiceManager
-	logger logger.Logger
+	sm          *manager.ServiceManager
+	logger      logger.Logger
 	timeout     time.Duration
 }
 
-
 // NewAuthClient creates a new instance of AuthClient.
-//
-// Parameters:
-//   - serviceName: the service name
-//   - sm: the service manager
-//   - log: the logger
-//   - timeout: maximum duration for RPC calls (e.g., 1 * time.Second)
-//
-// Returns:
-//   - *AuthClient: pointer to the initialized AuthClient.
 func NewAuthClient(serviceName string, sm *manager.ServiceManager, log logger.Logger, timeout time.Duration) *AuthClient {
 	return &AuthClient{
 		serviceName: serviceName,
-		sm: sm,
-		logger: log,
-		timeout: timeout,
+		sm:          sm,
+		logger:      log,
+		timeout:     timeout,
 	}
 }
 
-
 // Login authenticates a user with the given username and password.
-//
-// Parameters:
-//   - username: user's login name (non-empty).
-//   - password: user's password (non-empty).
-//
-// Returns:
-//   - bool: true if login was successful, false otherwise.
-//   - pb.Role: role assigned to the user (pb.Role_UNSPECIFIED if login fails).
-//   - error: non-nil if an internal error or invalid input occurs.
-func (c *AuthClient) Login(username, password string) (bool, pb.Role, error) {
+func (c *AuthClient) Login(username, password string) (bool, *pb.User, error) {
 	if username == "" || password == "" {
 		c.logger.Error("Username or Password empty in login request")
-		return false, pb.Role_UNSPECIFIED, fmt.Errorf("Username and Password must be provided and not empty")
+		return false, nil, fmt.Errorf("Username and Password must be provided and not empty")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
-    defer cancel()
+	defer cancel()
 
 	client, err := c.getClient()
 	if err != nil {
-		return false, pb.Role_UNSPECIFIED, err
+		c.logger.Error("Failed to get connection to service '%s': %v", c.serviceName, err)
+		return false, nil, err
 	}
 
 	req := &pb.LoginRequest{
@@ -71,37 +51,25 @@ func (c *AuthClient) Login(username, password string) (bool, pb.Role, error) {
 
 	res, err := client.Login(ctx, req)
 	if err != nil {
-		c.logger.Error("Login failed for user '%s': %v", username, err)
-		return false, pb.Role_UNSPECIFIED, err
+		c.logger.Error("Login error for user '%s': %v", username, err)
+		return false, nil, err
 	}
 	if res == nil {
 		c.logger.Error("Received nil response without error during login for user '%s'", username)
-    	return false, pb.Role_UNSPECIFIED, fmt.Errorf("Login failed: received nil response without error")
+		return false, nil, fmt.Errorf("Login failed: received nil response without error")
 	}
-	if !res.Success {
-		err_mes := res.GetErrorMessage()
-		c.logger.Warn("Invalid login attempt for user '%s': %s", username, err_mes)
-    	return false, pb.Role_UNSPECIFIED, fmt.Errorf(err_mes)
+	if !res.GetSuccess() {
+		c.logger.Warn("Invalid login attempt for user '%s': %s", username, res.GetErrorMessage())
+		return false, nil, nil
 	}
 
 	c.logger.Info("Login succeeded for user '%s'", username)
-	return true, res.GetRole(), nil
+	return true, res.GetUser(), nil
 }
 
-
 // Register creates a new user account with the provided credentials and contact info.
-//
-// Parameters:
-//   - username: desired username (non-empty).
-//   - password: password (non-empty).
-//   - email: user's email address (non-empty).
-//   - phone: user's phone number (non-empty).
-//
-// Returns:
-//   - bool: true if registration succeeded, false otherwise.
-//   - error: non-nil if an internal error or invalid input occurs.
 func (c *AuthClient) Register(username, password, email, phone string) (bool, error) {
-	if username == "" || password == "" || email =="" || phone == ""{
+	if username == "" || password == "" || email == "" || phone == "" {
 		c.logger.Error("Username, password, email or phone empty in register request")
 		return false, fmt.Errorf("Username, Password, Email and Phone must be provided and not empty")
 	}
@@ -111,48 +79,38 @@ func (c *AuthClient) Register(username, password, email, phone string) (bool, er
 
 	client, err := c.getClient()
 	if err != nil {
+		c.logger.Error("Failed to get connection to service '%s': %v", c.serviceName, err)
 		return false, err
 	}
 
 	req := &pb.RegisterRequest{
 		Username: username,
 		Password: password,
-		Email: email,
-		Phone: phone,
+		Email:    email,
+		Phone:    phone,
 	}
 
 	res, err := client.Register(ctx, req)
 	if err != nil {
-		c.logger.Error("Registration failed for user '%s': %v", username, err)
+		c.logger.Error("Registration error for user '%s': %v", username, err)
 		return false, err
 	}
 	if res == nil {
 		c.logger.Error("Received nil response without error during registration for user '%s'", username)
-    	return false, fmt.Errorf("Registration failed: received nil response without error")
+		return false, fmt.Errorf("Registration failed: received nil response without error")
 	}
-	if !res.Success {
-		err_mes := res.GetErrorMessage()
-		c.logger.Warn("Registration failed for user '%s': %s", username, err_mes)
-		return false, fmt.Errorf(err_mes)
+	if !res.GetSuccess() {
+		c.logger.Warn("Registration failed for user '%s': %s", username, res.GetErrorMessage())
+		return false, nil
 	}
 
 	c.logger.Info("Registration succeeded for user '%s'", username)
 	return true, nil
 }
 
-
 // ChangePassword updates the password for a given user.
-//
-// Parameters:
-//   - username: user's login name (non-empty).
-//   - oldPassword: current password (non-empty).
-//   - newPassword: new desired password (non-empty).
-//
-// Returns:
-//   - bool: true if password change succeeded, false otherwise.
-//   - error: non-nil if an internal error or invalid input occurs.
 func (c *AuthClient) ChangePassword(username, oldPassword, newPassword string) (bool, error) {
-	if username == "" || oldPassword == "" || newPassword =="" {
+	if username == "" || oldPassword == "" || newPassword == "" {
 		c.logger.Error("Username, old password or new password empty in change password request")
 		return false, fmt.Errorf("Username, old password and new password must be provided and not empty")
 	}
@@ -162,48 +120,38 @@ func (c *AuthClient) ChangePassword(username, oldPassword, newPassword string) (
 
 	client, err := c.getClient()
 	if err != nil {
+		c.logger.Error("Failed to get connection to service '%s': %v", c.serviceName, err)
 		return false, err
 	}
 
 	req := &pb.ChangePasswordRequest{
-		Username: username,
+		Username:    username,
 		OldPassword: oldPassword,
 		NewPassword: newPassword,
 	}
 
 	res, err := client.ChangePassword(ctx, req)
 	if err != nil {
-		c.logger.Error("Password change failed for user '%s': %v", username, err)
+		c.logger.Error("Password change error for user '%s': %v", username, err)
 		return false, err
 	}
 	if res == nil {
 		c.logger.Error("Received nil response without error during password change for user '%s'", username)
-    	return false, fmt.Errorf("Password change failed: received nil response without error")
+		return false, fmt.Errorf("Password change failed: received nil response without error")
 	}
-	if !res.Success {
-		err_mes := res.GetErrorMessage()
-		c.logger.Warn("Password change failed for user '%s': %s", username, err_mes)
-		return false, fmt.Errorf(err_mes)
+	if !res.GetSuccess() {
+		c.logger.Warn("Password change failed for user '%s': %s", username, res.GetErrorMessage())
+		return false, nil
 	}
 
 	c.logger.Info("Password change succeeded for user '%s'", username)
 	return true, nil
 }
 
-
-// SetUserRole sets the role of a specific user.
-//
-// Parameters:
-//   - username: target user's login name (non-empty).
-//   - role: desired role to assign (must not be pb.Role_UNSPECIFIED).
-//
-// Returns:
-//   - bool: true if role was successfully set, false otherwise.
-//   - error: non-nil if an internal error or invalid input occurs.
-func (c *AuthClient) SetUserRole(username string, role pb.Role) (bool, error) {
-	if username == "" || role == pb.Role_UNSPECIFIED {
-		c.logger.Warn("Username empty or unspecified Role in set user role request")
-		return false, fmt.Errorf("Username must be provided and not empty and the role must not be Unspecified")
+func (c *AuthClient) UpdateUser(username, email, phone string, role pb.Role) (bool, error) {
+	if username == "" {
+		c.logger.Error("Username empty in update user request")
+		return false, fmt.Errorf("Username must be provided and not empty")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
@@ -211,47 +159,40 @@ func (c *AuthClient) SetUserRole(username string, role pb.Role) (bool, error) {
 
 	client, err := c.getClient()
 	if err != nil {
+		c.logger.Error("Failed to get connection to service '%s': %v", c.serviceName, err)
 		return false, err
 	}
 
-	req := &pb.SetUserRoleRequest{
+	req := &pb.UpdateUserRequest{
 		Username: username,
-		Role: role,
+		Email:    email,
+		Phone:    phone,
+		Role:     role,
 	}
 
-	res, err := client.SetUserRole(ctx, req)
+	res, err := client.UpdateUser(ctx, req)
 	if err != nil {
-		c.logger.Error("Role setting failed for user '%s': %v", username, err)
+		c.logger.Error("Update error for user '%s': %v", username, err)
 		return false, err
 	}
 	if res == nil {
-		c.logger.Error("Received nil response without error during role setting for user '%s'", username)
-    	return false, fmt.Errorf("Role setting failed: received nil response without error")
+		c.logger.Error("Received nil response without error during update for user '%s'", username)
+		return false, fmt.Errorf("User update failed: received nil response without error")
 	}
-	if !res.Success {
-		err_mes := res.GetErrorMessage()
-		c.logger.Warn("Role setting failed for user '%s': %s", username, err_mes)
-		return false, fmt.Errorf(err_mes)
+	if !res.GetSuccess() {
+		c.logger.Warn("Update failed for user '%s': %s", username, res.GetErrorMessage())
+		return false, nil
 	}
 
-	c.logger.Info("Role setting succeeded for user '%s'", username)
+	c.logger.Info("Update succeeded for user '%s'", username)
 	return true, nil
 }
 
-
-// GetUserRole retrieves the role assigned to a given user.
-//
-// Parameters:
-//   - username: target user's login name (non-empty).
-//
-// Returns:
-//   - bool: true if retrieval succeeded, false otherwise.
-//   - pb.Role: role assigned to the user (pb.Role_UNSPECIFIED if retrieval fails).
-//   - error: non-nil if an internal error or invalid input occurs.
-func (c *AuthClient) GetUserRole(username string) (bool, pb.Role, error) {
+// GetUser retrieves the user information for the specified username.
+func (c *AuthClient) GetUser(username string) (bool, *pb.User, error) {
 	if username == "" {
-		c.logger.Warn("Username empty in get user role request")
-		return false, pb.Role_UNSPECIFIED, fmt.Errorf("Username must be provided and not empty")
+		c.logger.Error("Username empty in get user request")
+		return false, nil, fmt.Errorf("Username must be provided and not empty")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
@@ -259,30 +200,60 @@ func (c *AuthClient) GetUserRole(username string) (bool, pb.Role, error) {
 
 	client, err := c.getClient()
 	if err != nil {
-		return false, pb.Role_UNSPECIFIED, err
+		c.logger.Error("Failed to get connection to service '%s': %v", c.serviceName, err)
+		return false, nil, err
 	}
 
-	req := &pb.GetUserRoleRequest{
+	req := &pb.GetUserRequest{
 		Username: username,
 	}
 
-	res, err := client.GetUserRole(ctx, req)
+	res, err := client.GetUser(ctx, req)
 	if err != nil {
-		c.logger.Error("Role retrieval failed for user '%s': %v", username, err)
-		return false, pb.Role_UNSPECIFIED, err
+		c.logger.Error("Error during the retrieval of the user '%s': %v", username, err)
+		return false, nil, err
 	}
 	if res == nil {
-		c.logger.Error("Received nil response without error during role retrieval for user '%s'", username)
-    	return false, pb.Role_UNSPECIFIED, fmt.Errorf("Role retrieval failed: received nil response without error")
+		c.logger.Error("Received nil response without error during the retrieval of the user '%s'", username)
+		return false, nil, fmt.Errorf("User retrieval failed: received nil response without error")
 	}
-	if !res.Success {
-		err_mes := res.GetErrorMessage()
-		c.logger.Warn("Role retrieval failed for user '%s': %s", username, err_mes)
-		return false, pb.Role_UNSPECIFIED, fmt.Errorf(err_mes)
+	if !res.GetSuccess() {
+		c.logger.Warn("Failed retrieval of user '%s': %s", username, res.GetErrorMessage())
+		return false, nil, nil
 	}
 
-	c.logger.Info("Role retrieval succeeded for user '%s'", username)
-	return true, res.GetRole(), nil
+	c.logger.Info("Successful retrieval of the user '%s'", username)
+	return true, res.GetUser(), nil
+
+}
+
+// GetUsers retrieves all users registered in the system.
+func (c *AuthClient) GetUsers() (bool, []*pb.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
+	defer cancel()
+
+	client, err := c.getClient()
+	if err != nil {
+		c.logger.Error("Failed to get connection to service '%s': %v", c.serviceName, err)
+		return false, nil, err
+	}
+
+	res, err := client.GetUsers(ctx, &pb.GetUsersRequest{})
+	if err != nil {
+		c.logger.Error("Error during the retrieval of all users: %v", err)
+		return false, nil, err
+	}
+	if res == nil {
+		c.logger.Error("Received nil response without error during the retrieval of all users")
+		return false, nil, fmt.Errorf("Users retrieval failed: received nil response without error")
+	}
+	if !res.GetSuccess() {
+		c.logger.Warn("Failed retrieval of all users: %s", res.GetErrorMessage())
+		return false, nil, nil
+	}
+
+	c.logger.Info("Successful retrieval of all users")
+	return true, res.GetUsers(), nil
 }
 
 // getClient retrieves a new AuthenticationClient connected to the service.
@@ -293,7 +264,6 @@ func (c *AuthClient) GetUserRole(username string) (bool, pb.Role, error) {
 func (c *AuthClient) getClient() (pb.AuthenticationClient, error) {
 	conn, err := c.sm.GetConnWithTimeout(c.serviceName, c.timeout)
 	if err != nil {
-		c.logger.Error("Failed to get connection to service '%s': %v", c.serviceName, err)
 		return nil, err
 	}
 	return pb.NewAuthenticationClient(conn), nil

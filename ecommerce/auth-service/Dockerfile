@@ -11,7 +11,7 @@ COPY logger ./logger
 WORKDIR /app/auth-service
 
 RUN if [ "$BUILD_MODE" = "prod" ]; then \
-      sed -i '/replace.*proto.*=>/d' go.mod; \
+      sed -i '/replace.*=>/d' go.mod; \
     fi
 
 RUN go mod download

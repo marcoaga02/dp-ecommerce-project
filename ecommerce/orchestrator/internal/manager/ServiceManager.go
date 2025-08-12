@@ -12,13 +12,11 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
-
 // ServiceStatus holds the connection and readiness state for one service.
 type ServiceStatus struct {
 	Conn  *grpc.ClientConn
 	Ready bool
 }
-
 
 // ServiceManager monitors multiple gRPC services (health checks) and
 // keeps ready ClientConn references available for callers.
@@ -33,7 +31,6 @@ type ServiceManager struct {
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 }
-
 
 // NewServiceManager creates a ServiceManager.
 //
@@ -65,7 +62,6 @@ func NewServiceManager(addresses map[string]string, lg logger.Logger, upInterval
 	}
 }
 
-
 // StartMonitoring starts one monitor goroutine per service.
 // It returns immediately; stops when Stop() is called.
 func (sm *ServiceManager) StartMonitoring() {
@@ -86,7 +82,6 @@ func (sm *ServiceManager) StartMonitoring() {
 	}
 	sm.logger.Info("ServiceManager started monitoring %d services", len(sm.addresses))
 }
-
 
 // Stop stops all monitoring goroutines and closes all connections.
 func (sm *ServiceManager) Stop() {
@@ -112,7 +107,6 @@ func (sm *ServiceManager) Stop() {
 	sm.mu.Unlock()
 	sm.logger.Info("ServiceManager stopped")
 }
-
 
 // monitorService runs a loop trying to keep the named service healthy.
 // It adjusts sleep interval depending on service state (ready vs not ready).
@@ -187,7 +181,6 @@ func (sm *ServiceManager) monitorService(ctx context.Context, name, addr string)
 	}
 }
 
-
 // handleServiceDown handles the scenario where a service is down or unresponsive during health checks.
 //
 // Parameters:
@@ -211,7 +204,6 @@ func (sm *ServiceManager) handleServiceDown(ctx context.Context, name string, co
 		return false // exit monitoring loop
 	}
 }
-
 
 // setServiceStatus safely updates the internal map and closes any previous connection
 // when replacing it with a different one.
@@ -242,7 +234,6 @@ func (sm *ServiceManager) setServiceStatus(name string, conn *grpc.ClientConn, r
 	// sm.logger.Info("Set status for service '%s': ready=%v", name, ready) // too much verbosity
 }
 
-
 // GetConn returns a ready *grpc.ClientConn for the given service name, or error if not ready.
 //
 // Parameters:
@@ -264,7 +255,6 @@ func (sm *ServiceManager) GetConn(name string) (*grpc.ClientConn, error) {
 	}
 	return svc.Conn, nil
 }
-
 
 // GetConnWithTimeout waits until the service is ready or the timeout expires.
 //

@@ -1,0 +1,13 @@
+{{template "header.tmpl" .}}
+
+<h1>Welcome on my ecommerce</h1>
+<p>Where you can buy clothes for every occasion</p>
+
+{{if eq .Role "administrator"}}
+    <div>
+        <a href="/app/admin/users">Manage Users</a>
+    </div>
+{{end}}
+
+
+{{template "footer.tmpl" .}}

@@ -1,0 +1,53 @@
+{{define "header.tmpl"}}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Title}}</title>
+    <style>
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+        .flash {
+            color: green;
+            margin-bottom: 10px;
+        }
+
+        .user-info {
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+
+        .user-info div {
+            margin: 2px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>My Ecommerce</h1>
+        <nav>
+            {{if .IsLoggedIn}}
+            <div class="user-info">
+                <div>Welcome {{.Username}}</div>
+                <a href="/app/">Home</a>
+                <div><a href="/app/user-profile">Profile</a></div>
+                <div><a href="/app/change-password">Change your password</a></div>
+                <div><a href="/app/logout">Logout</a></div>
+            </div>
+            {{else}}
+            <a href="/login">Login</a> | <a href="/register">Register</a>
+            {{end}}
+        </nav>
+    </header>
+    <main>
+        {{if .Flash}}
+            <div class="flash">{{.Flash}}</div>
+        {{end}}
+        {{if .Error}}
+            <div class="error">{{.Error}}</div>
+        {{end}}
+{{end}}

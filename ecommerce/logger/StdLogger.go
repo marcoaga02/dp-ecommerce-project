@@ -98,6 +98,6 @@ func (l *StdLogger) Error(msg string, args ...interface{}) {
 // Behavior:
 //   - This function calls os.Exit(1) after logging and does not return.
 func (l *StdLogger) Fatal(msg string, args ...interface{}) {
-    l.log(Error, "[FATAL]", msg, args...)
-    os.Exit(1)
+	l.log(Error, "[FATAL]", msg, args...)
+	os.Exit(1)
 }

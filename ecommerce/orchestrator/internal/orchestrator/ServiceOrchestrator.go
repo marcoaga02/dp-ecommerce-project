@@ -1,21 +1,22 @@
 package orchestrator
 
 import (
+	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/orchestrator/internal/grpc/clients"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/orchestrator/internal/model"
-	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
 )
 
 // ServiceOrchestrator
 type ServiceOrchestrator struct {
 	authClient clients.AuthClient
-    // productClient clients.productClient
-    // cartClient clients.cartClient
-    // orderClient clients.orderClient
+	// productClient clients.productClient
+	// cartClient clients.cartClient
+	// orderClient clients.orderClient
 
 	logger logger.Logger
 }
 
+// NewServiceOrchestrator creates an instance of the struct ServiceOrchestrator
 func NewServiceOrchestrator(authClient clients.AuthClient, log logger.Logger) *ServiceOrchestrator {
 	return &ServiceOrchestrator{
 		authClient: authClient,
@@ -27,19 +28,9 @@ func NewServiceOrchestrator(authClient clients.AuthClient, log logger.Logger) *S
 	}
 }
 
-
 // Login attempts to authenticate a user with the provided username and password.
-//
-// Parameters:
-//   - username: the user's login identifier
-//   - password: the user's password
-//
-// Returns:
-//   - bool: true if login was successful, false otherwise
-//   - model.Role: the role of the user if login succeeds; RoleUnspecified otherwise
-//   - error: non-nil if a server or internal error occurred during login
 func (so *ServiceOrchestrator) Login(username, password string) (bool, model.Role, error) {
-	succ, protoRole, err := so.authClient.Login(username, password)
+	succ, user, err := so.authClient.Login(username, password)
 	if err != nil {
 		so.logger.Error("Login error for user '%s': %v", username, err)
 		return false, model.RoleUnspecified, err
@@ -49,23 +40,12 @@ func (so *ServiceOrchestrator) Login(username, password string) (bool, model.Rol
 		return false, model.RoleUnspecified, nil
 	}
 
-	role := model.ProtoRoleToRole(protoRole)
+	role := model.ProtoRoleToModelRole(user.GetRole())
 	so.logger.Info("Successful login for user '%s' with role '%s'", username, role)
 	return true, role, nil
 }
 
-
 // Register attempts to create a new user account with given credentials and contact info.
-//
-// Parameters:
-//   - username: desired username
-//   - password: desired password
-//   - email: user's email address
-//   - phone: user's phone number
-//
-// Returns:
-//   - bool: true if registration was successful, false otherwise
-//   - error: non-nil if a server or internal error occurred during registration
 func (so *ServiceOrchestrator) Register(username, password, email, phone string) (bool, error) {
 	succ, err := so.authClient.Register(username, password, email, phone)
 	if err != nil {
@@ -81,17 +61,7 @@ func (so *ServiceOrchestrator) Register(username, password, email, phone string)
 	return true, nil
 }
 
-
 // ChangePassword attempts to update a user's password.
-//
-// Parameters:
-//   - username: user's login identifier
-//   - oldPassword: current password
-//   - newPassword: new desired password
-//
-// Returns:
-//   - bool: true if password change succeeded, false otherwise
-//   - error: non-nil if a server or internal error occurred during password update
 func (so *ServiceOrchestrator) ChangePassword(username, oldPassword, newPassword string) (bool, error) {
 	succ, err := so.authClient.ChangePassword(username, oldPassword, newPassword)
 	if err != nil {
@@ -107,19 +77,25 @@ func (so *ServiceOrchestrator) ChangePassword(username, oldPassword, newPassword
 	return true, nil
 }
 
+// UpdateUser attemps to update email, phone and / or role of the user associated to the username
+func (so *ServiceOrchestrator) UpdateUser(username, email, phone string, role model.Role) (bool, error) {
+	succ, err := so.authClient.UpdateUser(username, email, phone, model.ModelRoleToProtoRole(role))
+	if err != nil {
+		so.logger.Error("Update error for user '%s': %v", username, err)
+		return false, err
+	}
+	if !succ {
+		so.logger.Warn("Update failed for user '%s'", username)
+		return false, nil
+	}
+
+	so.logger.Info("Successful update for user '%s'", username)
+	return true, nil
+}
 
 // SetUserRole attempts to set the role of a specific user.
-//
-// Parameters:
-//   - username: user's login identifier
-//   - role: desired role to assign
-//
-// Returns:
-//   - bool: true if role setting succeeded, false otherwise
-//   - error: non-nil if a server or internal error occurred during role assignment
 func (so *ServiceOrchestrator) SetUserRole(username string, role model.Role) (bool, error) {
-	pbRole := model.RoleToProtoRole(role)
-	succ, err := so.authClient.SetUserRole(username, pbRole)
+	succ, err := so.UpdateUser(username, "", "", role)
 	if err != nil {
 		so.logger.Error("Role setting error for user '%s': %v", username, err)
 		return false, err
@@ -133,29 +109,34 @@ func (so *ServiceOrchestrator) SetUserRole(username string, role model.Role) (bo
 	return true, nil
 }
 
-
-// GetUserRole retrieves the role assigned to a specific user.
-//
-// Parameters:
-//   - username: user's login identifier
-//
-// Returns:
-//   - bool: true if retrieval succeeded, false otherwise
-//   - model.Role: the role assigned to the user if retrieval succeeded; RoleUnspecified otherwise
-//   - error: non-nil if a server or internal error occurred during role retrieval
-func (so *ServiceOrchestrator) GetUserRole(username string) (bool, model.Role, error) {
-	succ, pbRole, err := so.authClient.GetUserRole(username)
+// GetUserRole retrieves all the user information related to the specific username
+func (so *ServiceOrchestrator) GetUser(username string) (bool, *model.User, error) {
+	succ, user, err := so.authClient.GetUser(username)
 	if err != nil {
-		so.logger.Error("Role retrieval error for user '%s': %v", username, err)
-		return false, model.RoleUnspecified, err
+		so.logger.Error("Retrieval error of user '%s': %v", username, err)
+		return false, nil, err
 	}
 	if !succ {
-		so.logger.Warn("Role retrieval failed for user '%s'", username)
-		return false, model.RoleUnspecified, nil
+		so.logger.Warn("Retrieval failed of user '%s'", username)
+		return false, nil, nil
 	}
 
-	role := model.ProtoRoleToRole(pbRole)
-	so.logger.Info("Successful role retrieval for user '%s'", username)
-	return true, role, nil
+	so.logger.Info("Successful retrieval of user '%s'", username)
+	return true, model.ProtoUserToModelUser(user), nil
 }
 
+// GetUserRole retrieves all the information of all users
+func (so *ServiceOrchestrator) GetUsers() (bool, []*model.User, error) {
+	succ, users, err := so.authClient.GetUsers()
+	if err != nil {
+		so.logger.Error("Retrieval error of all users: %v", err)
+		return false, nil, err
+	}
+	if !succ {
+		so.logger.Warn("Retrieval of all users failed")
+		return false, nil, nil
+	}
+
+	so.logger.Info("Successful retrieval of all users")
+	return true, model.ProtoUsersListToModelUsersList(users), nil
+}

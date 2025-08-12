@@ -5,9 +5,9 @@ import (
 	"net"
 	"os"
 
+	"google.golang.org/grpc"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"google.golang.org/grpc"
 
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/auth-service/internal"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/auth-service/internal/repository"
@@ -43,8 +43,8 @@ func main() {
 
 	gormAuthRepo := repository.NewGormAuthRepository(db, logger.NewStdLogger(logLevel, "auth-service/db"))
 	if err := gormAuthRepo.CreateDefaultUsers(); err != nil {
-        myLogger.Fatal("Failed to create default users: %v", err)
-    }
+		myLogger.Fatal("Failed to create default users: %v", err)
+	}
 
 	authServer := internal.NewAuthServer(gormAuthRepo, logger.NewStdLogger(logLevel, "auth-service/server"))
 
@@ -73,10 +73,9 @@ func main() {
 // Returns:
 //   - string: the value of the environment variable
 func GetEnvOrFatal(logger logger.Logger, key string) string {
-    val := os.Getenv(key)
-    if val == "" {
-        logger.Fatal("Environment variable %s not set", key)
-    }
-    return val
+	val := os.Getenv(key)
+	if val == "" {
+		logger.Fatal("Environment variable %s not set", key)
+	}
+	return val
 }
-

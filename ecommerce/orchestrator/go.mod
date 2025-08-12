@@ -5,7 +5,6 @@ go 1.23.0
 toolchain go1.23.11
 
 replace github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto => ../proto
-
 replace github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger => ../logger
 
 require (
