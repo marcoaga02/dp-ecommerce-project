@@ -1,0 +1,59 @@
+services:
+  product:
+    container_name: ${PRODUCT_NAME}
+    build:
+      context: ../ecommerce
+      dockerfile: product-service/Dockerfile
+      args:
+        BUILD_MODE: ${BUILD_MODE:-dev}
+      target: run
+    restart: always
+    depends_on:
+      product_db:
+        condition: service_healthy
+    expose:
+      - "${GRPC_PORT}"
+    environment:
+      GRPC_PORT: ${GRPC_PORT}
+      DB_HOST: product_db
+      DB_NAME: product
+      DB_PORT: ${DB_PORT}
+      DB_PASSWORD: ${DB_PASSWORD}
+      LOG_LEVEL: ${LOG_LEVEL}
+    networks:
+      - ecommerce_net
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=localhost:${GRPC_PORT}"]
+      start_period: 5s
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    profiles: ["run"]
+
+  product_db:
+    image: mariadb:latest
+    restart: always
+    expose:
+      - "${DB_PORT}"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ../ecommerce/product-service/db/setup.sql:/docker-entrypoint-initdb.d/init.sql
+      - product_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 60s
+      start_interval: 10s
+      interval: 60s
+      timeout: 15s
+      retries: 10
+    networks:
+      - ecommerce_net
+    profiles: ["run"]
+
+networks:
+  ecommerce_net:
+    name: ecommerce_net
+
+volumes:
+  product_db:
