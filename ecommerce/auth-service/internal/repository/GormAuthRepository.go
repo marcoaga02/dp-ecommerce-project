@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// GormAuthRepository implements the AuthDB interface using GORM as the ORM layer.
+// GormAuthRepository implements the AuthServiceInterface interface using GORM as the ORM layer.
 type GormAuthRepository struct {
 	db     *gorm.DB
 	logger logger.Logger
@@ -149,7 +149,7 @@ func (r *GormAuthRepository) UpdateUser(username, email, phone string, role pb.R
 	_, err := r.getUserByUsername(username)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			r.logger.Warn("User %s not found", username)
+			r.logger.Warn("User '%s' not found", username)
 			return false, nil
 		}
 		r.logger.Error("Error retrieving user with username '%s': %v", username, err)
@@ -310,7 +310,7 @@ func (r *GormAuthRepository) getProtoBufUserFromModel(userModel *model.User) (*p
 func (r *GormAuthRepository) mapRoleFromDB(roleID int) (pb.Role, error) {
 	role, ok := roleMapDb2Enum[roleID]
 	if !ok {
-		return pb.Role_UNSPECIFIED, fmt.Errorf("Invalid role '%d'", roleID)
+		return pb.Role_UNSPECIFIED, fmt.Errorf("Invalid role id '%d'", roleID)
 	}
 	return role, nil
 }

@@ -19,7 +19,7 @@ import (
 
 func main() {
 	logLevel := logger.ParseLogLevel("LOG_LEVEL")
-	myLogger := logger.NewStdLogger(logLevel, "auth-service")
+	myLogger := logger.NewStdLogger(logLevel, "auth-service/main")
 
 	port := GetEnvOrFatal(myLogger, "GRPC_PORT")
 
@@ -43,7 +43,7 @@ func main() {
 
 	gormAuthRepo := repository.NewGormAuthRepository(db, logger.NewStdLogger(logLevel, "auth-service/db"))
 	if err := gormAuthRepo.CreateDefaultUsers(); err != nil {
-		myLogger.Fatal("Failed to create default users: %v", err)
+		myLogger.Fatal("Internal errors while creating default users: %v", err)
 	}
 
 	authServer := internal.NewAuthServer(gormAuthRepo, logger.NewStdLogger(logLevel, "auth-service/server"))
@@ -59,7 +59,7 @@ func main() {
 	myLogger.Info("Auth service listening on port %s", port)
 
 	if err := grpcServer.Serve(lis); err != nil {
-		myLogger.Fatal("Failed to serve gRPC server: %v", err)
+		myLogger.Fatal("gRPC user server failed: %v", err)
 	}
 }
 

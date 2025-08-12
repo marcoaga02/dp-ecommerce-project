@@ -97,7 +97,6 @@ func (s *AuthServer) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.
 	}
 
 	succ, err := s.db.Register(in.Username, in.Password, in.Email, in.Phone)
-
 	if err != nil {
 		s.logger.Error("Internal error during registration for user '%s': %v", in.Username, err)
 		return &pb.RegisterResponse{
@@ -178,7 +177,7 @@ func (s *AuthServer) UpdateUser(ctx context.Context, in *pb.UpdateUserRequest) (
 		}, nil
 	}
 
-	s.logger.Info("Successful update for the user '%s'", in.Username)
+	s.logger.Info("Successful update of the user '%s'", in.Username)
 	return &pb.UpdateUserResponse{
 		Success: true,
 	}, nil
