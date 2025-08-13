@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
-	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/product-service/pkg/repository"
+	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/product-service/internal/interfaces"
 	pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/product"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -13,11 +13,11 @@ import (
 
 type ProductServer struct {
 	pb.UnimplementedProductServiceServer
-	db     repository.ProductServiceInterface
+	db     interfaces.ProductServiceInterface
 	logger logger.Logger
 }
 
-func NewProductServer(db repository.ProductServiceInterface, logger logger.Logger) *ProductServer {
+func NewProductServer(db interfaces.ProductServiceInterface, logger logger.Logger) *ProductServer {
 	return &ProductServer{
 		db:     db,
 		logger: logger,
@@ -48,6 +48,14 @@ func (s *ProductServer) CreateProduct(ctx context.Context, in *pb.CreateProductR
 			Success:      false,
 			ErrorMessage: "The product stock must be provided and must be non-negative",
 		}, status.Error(codes.InvalidArgument, "The product stock must be provided and must be non-negative")
+	}
+
+	if in.Product.Price < 0 {
+		s.logger.Warn("Negative price value in create product request")
+		return &pb.CreateProductResponse{
+			Success:      false,
+			ErrorMessage: "The product price must be provided and must be non-negative",
+		}, status.Error(codes.InvalidArgument, "The product price must be provided and must be non-negative")
 	}
 
 	succ, err := s.db.CreateProduct(in.Product)

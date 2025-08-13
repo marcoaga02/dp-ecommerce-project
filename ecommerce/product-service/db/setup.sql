@@ -26,5 +26,6 @@ CREATE TABLE products (
     color VARCHAR(30) NOT NULL,
     description VARCHAR(255) NOT NULL,
     stock INT NOT NULL,
+    price DOUBLE(10,2) NOT NULL,
     FOREIGN KEY (size_id) REFERENCES sizes(id)
 ) ENGINE=InnoDB;

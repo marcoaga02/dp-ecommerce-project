@@ -84,6 +84,7 @@ func (r *GormProductRepository) CreateProduct(prod *pb.Product) (bool, error) {
 		Color:       prod.Color,
 		Description: prod.Description,
 		Stock:       prod.Stock,
+		Price:       prod.Price,
 	}
 
 	if err := r.db.Create(&newProd).Error; err != nil {
@@ -149,6 +150,9 @@ func (r *GormProductRepository) UpdateProduct(code string, prod *pb.Product) (bo
 	}
 	if prod.Stock >= 0 {
 		updates["stock"] = prod.Stock
+	}
+	if prod.Price >= 0 {
+		updates["price"] = prod.Price
 	}
 
 	if len(updates) == 0 {
@@ -261,6 +265,7 @@ func (r *GormProductRepository) getProtoBufProdFromModel(prodModel *model.Produc
 		Color:       prodModel.Color,
 		Description: prodModel.Description,
 		Stock:       prodModel.Stock,
+		Price:       prodModel.Price,
 	}, nil
 }
 
@@ -272,6 +277,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 		Color       string
 		Description string
 		Stock       int32
+		Price       float64
 	}
 	defaultProducts := []DefaultProduct{
 		{
@@ -281,6 +287,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 			Color:       "White",
 			Description: "Comfortable 100%% cotton t-shirt for everyday wear",
 			Stock:       100,
+			Price:       24.99,
 		},
 		{
 			Code:        "TSHIRT-002",
@@ -289,6 +296,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 			Color:       "Black",
 			Description: "Comfortable 100%% cotton t-shirt for everyday wear",
 			Stock:       85,
+			Price:       29.99,
 		},
 		{
 			Code:        "TSHIRT-003",
@@ -297,6 +305,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 			Color:       "Black",
 			Description: "Comfortable 100%% cotton t-shirt for everyday wear",
 			Stock:       85,
+			Price:       19.99,
 		},
 		{
 			Code:        "JEANS-001",
@@ -305,6 +314,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 			Color:       "Blue",
 			Description: "Durable straight-cut denim jeans",
 			Stock:       50,
+			Price:       49.99,
 		},
 		{
 			Code:        "JEANS-002",
@@ -313,6 +323,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 			Color:       "Blue",
 			Description: "Durable straight-cut denim jeans",
 			Stock:       50,
+			Price:       45.99,
 		},
 		{
 			Code:        "HOODIE-001",
@@ -321,6 +332,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 			Color:       "Gray",
 			Description: "Hoodie with front pocket",
 			Stock:       75,
+			Price:       27.75,
 		},
 		{
 			Code:        "HOODIE-002",
@@ -329,6 +341,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 			Color:       "Gray",
 			Description: "Hoodie with front pocket",
 			Stock:       45,
+			Price:       18.25,
 		},
 	}
 
@@ -340,6 +353,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 			Color:       prod.Color,
 			Description: prod.Description,
 			Stock:       prod.Stock,
+			Price:       prod.Price,
 		})
 		if err != nil {
 			r.logger.Error("Error creating default product with code'%s': %v", prod.Code, err)
