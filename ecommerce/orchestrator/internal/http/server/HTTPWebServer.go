@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -17,18 +18,7 @@ type HTTPWebServer struct {
 	logger       logger.Logger
 }
 
-const routePrefix = "/app"
 const interalServerErrorMsg = "Internal server error. Please try again later."
-
-var roleMapStrToRole = map[string]model.Role{
-	"client":        model.RoleClient,
-	"administrator": model.RoleAdmin,
-}
-
-var roleMapRoleToStr = map[model.Role]string{
-	model.RoleClient: "client",
-	model.RoleAdmin:  "administrator",
-}
 
 func NewHTTPWebServer(router *gin.Engine, orchestrator *orchestrator.ServiceOrchestrator, logger logger.Logger) *HTTPWebServer {
 	return &HTTPWebServer{
@@ -70,21 +60,21 @@ func (s *HTTPWebServer) AdminRequired() gin.HandlerFunc {
 		if err != nil {
 			s.logger.Error("User retrieval error in AdminRequired: %v", err)
 			s.setErrorMessage(c, interalServerErrorMsg)
-			c.Redirect(http.StatusFound, fmt.Sprintf("%s/", routePrefix))
+			c.Redirect(http.StatusFound, "/app/")
 			c.Abort()
 			return
 		}
 		if !succ {
 			s.logger.Warn("User retrieval failed in AdminRequired: User not found")
 			s.setErrorMessage(c, "User not found")
-			c.Redirect(http.StatusFound, fmt.Sprintf("%s/", routePrefix))
+			c.Redirect(http.StatusFound, "/app/")
 			c.Abort()
 			return
 		}
 
 		if user.Role != model.RoleAdmin {
 			s.setErrorMessage(c, "Access forbidden: Admins only")
-			c.Redirect(http.StatusFound, fmt.Sprintf("%s/", routePrefix))
+			c.Redirect(http.StatusFound, "/app/")
 			c.Abort()
 			return
 		}
@@ -96,7 +86,7 @@ func (s *HTTPWebServer) AdminRequired() gin.HandlerFunc {
 func (s *HTTPWebServer) RootHandler(c *gin.Context) {
 	session := sessions.Default(c)
 	if session.Get("username") != nil {
-		c.Redirect(http.StatusFound, fmt.Sprintf("%s/", routePrefix))
+		c.Redirect(http.StatusFound, "/app/")
 		return
 	}
 	c.Redirect(http.StatusFound, "/login")
@@ -110,7 +100,7 @@ func (s *HTTPWebServer) IndexHandler(c *gin.Context) {
 	}
 
 	role, err := s.getUserRole(username)
-	roleStr, ok := roleMapRoleToStr[role]
+	roleStr, ok := model.RoleMapRoleToStr[role]
 	if err != nil || !ok {
 		s.logger.Error("Error fetching user role or unknown role: %v", err)
 		c.HTML(http.StatusInternalServerError, "index.tmpl", gin.H{
@@ -127,15 +117,19 @@ func (s *HTTPWebServer) IndexHandler(c *gin.Context) {
 		"Role":       roleStr,
 		"IsLoggedIn": isLoggedIn,
 		"Flash":      s.getFlashMessage(c),
-		"Error":	  s.getErrorMessage(c),
+		"Error":      s.getErrorMessage(c),
 	})
 }
+
+/*
+* USER HANDLERS
+ */
 
 func (s *HTTPWebServer) LoginGetHandler(c *gin.Context) {
 	isLoggedIn := false
 	session := sessions.Default(c)
 	if session.Get("username") != nil {
-		c.Redirect(http.StatusFound, fmt.Sprintf("%s/", routePrefix))
+		c.Redirect(http.StatusFound, "/app/")
 		return
 	}
 	c.HTML(http.StatusOK, "login.tmpl", gin.H{
@@ -183,14 +177,14 @@ func (s *HTTPWebServer) LoginPostHandler(c *gin.Context) {
 	}
 
 	s.setFlashMessage(c, fmt.Sprintf("Login successfull! %s", flash_role_msg))
-	c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s/", routePrefix))
+	c.Redirect(http.StatusSeeOther, "/app/")
 }
 
 func (s *HTTPWebServer) RegisterGetHandler(c *gin.Context) {
 	isLoggedIn := false
 	session := sessions.Default(c)
 	if session.Get("username") != nil {
-		c.Redirect(http.StatusFound, fmt.Sprintf("%s/", routePrefix))
+		c.Redirect(http.StatusFound, "/app/")
 		return
 	}
 	c.HTML(http.StatusOK, "register.tmpl", gin.H{
@@ -253,18 +247,18 @@ func (s *HTTPWebServer) ChangePasswordPostHandler(c *gin.Context) {
 	if err != nil {
 		s.logger.Error("Password change error: %v", err)
 		s.setErrorMessage(c, interalServerErrorMsg)
-		c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s/change-password", routePrefix))
+		c.Redirect(http.StatusSeeOther, "/app/user/password")
 		return
 	}
 	if !succ {
 		s.logger.Warn("Change password failed: Invalid current password")
 		s.setErrorMessage(c, "Invalid current password")
-		c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s/change-password", routePrefix))
+		c.Redirect(http.StatusSeeOther, "/app/user/password")
 		return
 	}
 
 	s.setFlashMessage(c, "Password changed successfully!")
-	c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s/", routePrefix))
+	c.Redirect(http.StatusSeeOther, "/app/")
 }
 
 func (s *HTTPWebServer) UserProfileGetHandler(c *gin.Context) {
@@ -277,19 +271,19 @@ func (s *HTTPWebServer) UserProfileGetHandler(c *gin.Context) {
 	if err != nil {
 		s.logger.Error("User retrieval error: %v", err)
 		c.HTML(http.StatusInternalServerError, "profile.tmpl", gin.H{
-            "Title":      "User Profile - Ecommerce",
-            "Error":      interalServerErrorMsg,
-            "IsLoggedIn": isLoggedIn,
-        })
+			"Title":      "User Profile - Ecommerce",
+			"Error":      interalServerErrorMsg,
+			"IsLoggedIn": isLoggedIn,
+		})
 		return
 	}
 	if !succ {
 		s.logger.Warn("User retrieval failed: User not found")
 		c.HTML(http.StatusNotFound, "profile.tmpl", gin.H{ // ← profile.tmpl + 404!
-            "Title":      "User Profile - Ecommerce", 
-            "Error":      "User not found",
-            "IsLoggedIn": isLoggedIn,
-        })
+			"Title":      "User Profile - Ecommerce",
+			"Error":      "User not found",
+			"IsLoggedIn": isLoggedIn,
+		})
 		return
 	}
 
@@ -312,33 +306,25 @@ func (s *HTTPWebServer) UserProfilePostHandler(c *gin.Context) {
 	if !ok {
 		return // method getUsernameFromSessionOrRedirect already did the redirect
 	}
-	method := c.PostForm("_method")
-	switch method {
-	case "PATCH":
-		email := c.PostForm("email")
-		phone := c.PostForm("phone")
+	email := c.PostForm("email")
+	phone := c.PostForm("phone")
 
-		succ, err := s.orchestrator.UpdateUser(username, email, phone, model.RoleUnspecified)
-		
-		if err != nil {
-			s.logger.Error("User update error: %v", err)
-			s.setErrorMessage(c, interalServerErrorMsg)
-			c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s/user-profile", routePrefix))
-			return
-		}
-		if !succ {
-			s.logger.Warn("User update failed")
-			s.setErrorMessage(c, "User update failed")
-			c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s/user-profile", routePrefix))
-			return
-		}
-		s.setFlashMessage(c, "User updated successfully!")
-		c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s/user-profile", routePrefix))
-	default:
-		s.logger.Warn("Unsupported method override: %s", method)
-		c.Redirect(http.StatusSeeOther, fmt.Sprintf("%s/user-profile", routePrefix))
+	succ, err := s.orchestrator.UpdateUser(username, email, phone, model.RoleUnspecified)
+
+	if err != nil {
+		s.logger.Error("User update error: %v", err)
+		s.setErrorMessage(c, interalServerErrorMsg)
+		c.Redirect(http.StatusSeeOther, "/app/user/profile")
 		return
 	}
+	if !succ {
+		s.logger.Warn("User update failed")
+		s.setErrorMessage(c, "User update failed")
+		c.Redirect(http.StatusSeeOther, "/app/user/profile")
+		return
+	}
+	s.setFlashMessage(c, "User updated successfully!")
+	c.Redirect(http.StatusSeeOther, "/app/user/profile")
 }
 
 func (s *HTTPWebServer) UsersGetHandler(c *gin.Context) {
@@ -347,6 +333,7 @@ func (s *HTTPWebServer) UsersGetHandler(c *gin.Context) {
 	if !ok {
 		return // method getUsernameFromSessionOrRedirect already did the redirect
 	}
+
 	succ, users, err := s.orchestrator.GetUsers()
 	if err != nil {
 		s.logger.Error("Error retrieving users: %v", err)
@@ -359,7 +346,7 @@ func (s *HTTPWebServer) UsersGetHandler(c *gin.Context) {
 		return
 	}
 	if !succ {
-		s.logger.Warn("Users retrieval failed: %v", err)
+		s.logger.Warn("Users retrieval failed")
 		c.HTML(http.StatusInternalServerError, "adminUsers.tmpl", gin.H{
 			"Title":      "Manage Users - Ecommerce",
 			"Username":   username,
@@ -391,50 +378,45 @@ func (s *HTTPWebServer) UsersGetHandler(c *gin.Context) {
 }
 
 func (s *HTTPWebServer) SetUserRolePostHandler(c *gin.Context) {
-	method := c.PostForm("_method")
-	switch method {
-	case "PATCH":
-		username := c.Param("username")
-		if username == "" {
-			s.setErrorMessage(c, "Missing username parameter")
-			c.Redirect(http.StatusSeeOther, "/app/admin/users")
-			return
-		}
-
-		newRole := c.PostForm("role")
-
-		var role model.Role
-		role, ok := roleMapStrToRole[newRole]
-		if !ok {
-			role = model.RoleUnspecified
-		}
-
-		if role == model.RoleUnspecified {
-			s.setErrorMessage(c, "Invalid role specified")
-			c.Redirect(http.StatusSeeOther, "/app/admin/users")
-			return
-		}
-
-		succ, err := s.orchestrator.SetUserRole(username, role)
-		if err != nil {
-			s.logger.Error("Error updating role for user %s: %v", username, err)
-			s.setErrorMessage(c, interalServerErrorMsg)
-			c.Redirect(http.StatusSeeOther, "/app/admin/users")
-			return
-		}
-		if !succ {
-			s.logger.Warn("Role update failed for user %s: %v", username, err)
-			s.setErrorMessage(c, "Role setting failed")
-			c.Redirect(http.StatusSeeOther, "/app/admin/users")
-			return
-		}
-
-		s.setFlashMessage(c, fmt.Sprintf("Role updated successfully for user '%s'", username))
+	username := c.Param("username")
+	if username == "" {
+		s.logger.Warn("Missing username parameter in set user role handler")
+		s.setErrorMessage(c, "Missing username parameter")
 		c.Redirect(http.StatusSeeOther, "/app/admin/users")
-	default:
-		s.logger.Warn("Unsupported method override: %s", method)
-		c.Redirect(http.StatusSeeOther, "/app/admin/users")
+		return
 	}
+
+	newRole := c.PostForm("role")
+
+	var role model.Role
+	role, ok := model.RoleMapStrToRole[newRole]
+	if !ok {
+		role = model.RoleUnspecified
+	}
+
+	if role == model.RoleUnspecified {
+		s.logger.Warn("Invalid role specified in set user role request")
+		s.setErrorMessage(c, "Invalid role specified")
+		c.Redirect(http.StatusSeeOther, "/app/admin/users")
+		return
+	}
+
+	succ, err := s.orchestrator.SetUserRole(username, role)
+	if err != nil {
+		s.logger.Error("Error updating role for user %s: %v", username, err)
+		s.setErrorMessage(c, interalServerErrorMsg)
+		c.Redirect(http.StatusSeeOther, "/app/admin/users")
+		return
+	}
+	if !succ {
+		s.logger.Warn("Role update failed for user %s", username)
+		s.setErrorMessage(c, "Role setting failed")
+		c.Redirect(http.StatusSeeOther, "/app/admin/users")
+		return
+	}
+
+	s.setFlashMessage(c, fmt.Sprintf("Role updated successfully for user '%s'", username))
+	c.Redirect(http.StatusSeeOther, "/app/admin/users")
 }
 
 func (s *HTTPWebServer) LogoutHandler(c *gin.Context) {
@@ -471,6 +453,328 @@ func (s *HTTPWebServer) getUserRole(username string) (model.Role, error) {
 	}
 	return user.Role, nil
 }
+
+/*
+* PRODUCT HANDLERS
+ */
+
+func (s *HTTPWebServer) ListProductsGetHandler(c *gin.Context) {
+	isLoggedIn := true
+	username, ok := s.getUsernameFromSessionOrRedirect(c)
+	if !ok {
+		return // method getUsernameFromSessionOrRedirect already did the redirect
+	}
+
+	role, err := s.getUserRole(username)
+	roleStr, ok := model.RoleMapRoleToStr[role]
+	if err != nil || !ok {
+		s.logger.Error("Error fetching user role or unknown role: %v", err)
+		c.HTML(http.StatusInternalServerError, "productsList.tmpl", gin.H{
+			"Title":      "Products List - Ecommerce",
+			"Username":   username,
+			"Error":      interalServerErrorMsg,
+			"IsLoggedIn": isLoggedIn,
+		})
+		return
+	}
+
+	succ, prods, err := s.orchestrator.GetProductLists()
+	if err != nil {
+		s.logger.Error("Error retrieving products: %v", err)
+		c.HTML(http.StatusInternalServerError, "productsList.tmpl", gin.H{
+			"Title":      "Products List - Ecommerce",
+			"Username":   username,
+			"Role":       roleStr,
+			"Error":      interalServerErrorMsg,
+			"IsLoggedIn": isLoggedIn,
+		})
+		return
+	}
+	if !succ {
+		s.logger.Warn("Products retrieval failed")
+		c.HTML(http.StatusInternalServerError, "productsList.tmpl", gin.H{
+			"Title":      "Products List - Ecommerce",
+			"Username":   username,
+			"Role":       roleStr,
+			"Error":      "Products retrieval failed",
+			"IsLoggedIn": isLoggedIn,
+		})
+		return
+	}
+
+	var prodsForTemplate []gin.H
+	for _, p := range prods {
+		prodsForTemplate = append(prodsForTemplate, gin.H{
+			"Code":        p.Code,
+			"Name":        p.Name,
+			"Size":        p.Size,
+			"Color":       p.Color,
+			"Description": p.Description,
+			"Stock":       p.Stock,
+			"Price":       p.Price,
+		})
+	}
+	c.HTML(http.StatusOK, "productsList.tmpl", gin.H{
+		"Title":      "Products List - Ecommerce",
+		"Products":   prodsForTemplate,
+		"Username":   username,
+		"Role":       roleStr,
+		"Flash":      s.getFlashMessage(c),
+		"Error":      s.getErrorMessage(c),
+		"IsLoggedIn": isLoggedIn,
+	})
+}
+
+func (s *HTTPWebServer) NewProductGetHandler(c *gin.Context) {
+	isLoggedIn := true
+	username, ok := s.getUsernameFromSessionOrRedirect(c)
+	if !ok {
+		return // method getUsernameFromSessionOrRedirect already did the redirect
+	}
+
+	c.HTML(http.StatusOK, "createProduct.tmpl", gin.H{
+		"Title":      "Products List - Ecommerce",
+		"Sizes":      model.AllSizes,
+		"Username":   username,
+		"Flash":      s.getFlashMessage(c),
+		"Error":      s.getErrorMessage(c),
+		"IsLoggedIn": isLoggedIn,
+	})
+}
+
+func (s *HTTPWebServer) NewProductPostHandler(c *gin.Context) {
+	code := c.PostForm("code")
+	name := c.PostForm("name")
+	size := c.PostForm("size")
+	color := c.PostForm("color")
+	description := c.PostForm("description")
+	stock := c.PostForm("stock")
+	price := c.PostForm("price")
+
+	sizeModel, ok := model.SizeMapStrToSize[size]
+	if !ok || sizeModel == model.SizeUnspecified {
+		s.logger.Warn("Invalid size specified in new product handler")
+		s.setErrorMessage(c, "Invalid size specified")
+		c.Redirect(http.StatusSeeOther, "/app/product/new")
+		return
+	}
+
+	stockInt64, err := strconv.ParseInt(stock, 10, 32)
+	if err != nil {
+		s.logger.Warn("Invalid stock value in new product handler")
+		s.setErrorMessage(c, "Invalid stock value")
+		c.Redirect(http.StatusSeeOther, "/app/product/new")
+		return
+	}
+	stockInt32 := int32(stockInt64)
+
+	priceFloat64, err := strconv.ParseFloat(price, 64)
+	if err != nil {
+		s.logger.Warn("Invalid price value in new product handler")
+		s.setErrorMessage(c, "Invalid price value")
+		c.Redirect(http.StatusSeeOther, "/app/product/new")
+		return
+	}
+
+	succ, err := s.orchestrator.CreateProduct(code, name, sizeModel, color, description, stockInt32, priceFloat64)
+	if err != nil {
+		s.logger.Error("Error creating the new product with code '%s': %v", code, err)
+		s.setErrorMessage(c, interalServerErrorMsg)
+		c.Redirect(http.StatusSeeOther, "/app/product/new")
+		return
+	}
+	if !succ {
+		s.logger.Warn("Failed creation for product with code '%s'", code)
+		s.setErrorMessage(c, fmt.Sprintf("Product creation failed: already exists a product with the same code '%s'", code))
+		c.Redirect(http.StatusSeeOther, "/app/product/new")
+		return
+	}
+
+	s.setFlashMessage(c, fmt.Sprintf("Product with code '%s' successfully created", code))
+	c.Redirect(http.StatusSeeOther, "/app/product/")
+}
+
+func (s *HTTPWebServer) EditProductGetHandler(c *gin.Context) {
+	isLoggedIn := true
+	username, ok := s.getUsernameFromSessionOrRedirect(c)
+	if !ok {
+		return // method getUsernameFromSessionOrRedirect already did the redirect
+	}
+
+	code := c.Param("code")
+	if code == "" {
+		s.logger.Warn("Missing code parameter in edit product handler")
+		s.setErrorMessage(c, "Missing product code")
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+
+	succ, prod, err := s.orchestrator.GetProduct(code)
+	if err != nil {
+		s.logger.Error("Error during retrieval of product with code '%s': %v", code, err)
+		s.setErrorMessage(c, interalServerErrorMsg)
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+	if !succ {
+		s.logger.Warn("Product with code '%s' not found")
+		s.setErrorMessage(c, "Product not found")
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+
+	c.HTML(http.StatusOK, "editProduct.tmpl", gin.H{
+		"Title":    "Edit Product - Ecommerce",
+		"Sizes":    model.AllSizes,
+		"Username": username,
+		"Product": gin.H{
+			"Code":        prod.Code,
+			"Name":        prod.Name,
+			"Size":        prod.Size.String(),
+			"Color":       prod.Color,
+			"Description": prod.Description,
+			"Stock":       prod.Stock,
+			"Price":       prod.Price,
+		},
+		"Flash":      s.getFlashMessage(c),
+		"Error":      s.getErrorMessage(c),
+		"IsLoggedIn": isLoggedIn,
+	})
+}
+
+func (s *HTTPWebServer) EditProductPostHandler(c *gin.Context) {
+	code := c.Param("code")
+	if code == "" {
+		s.logger.Warn("Missing code parameter in edit product handler")
+		s.setErrorMessage(c, "Missing product code")
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+	name := c.PostForm("name")
+	size := c.PostForm("size")
+	color := c.PostForm("color")
+	description := c.PostForm("description")
+	stock := c.PostForm("stock")
+	price := c.PostForm("price")
+
+	sizeModel, ok := model.SizeMapStrToSize[size]
+	if !ok || sizeModel == model.SizeUnspecified {
+		s.logger.Warn("Invalid size specified in edit product handler")
+		s.setErrorMessage(c, "Invalid size specified")
+		c.Redirect(http.StatusSeeOther, "/app/product/"+code+"/edit")
+		return
+	}
+
+	stockInt64, err := strconv.ParseInt(stock, 10, 32)
+	if err != nil {
+		s.logger.Warn("Invalid stock value in edit product handler")
+		s.setErrorMessage(c, "Invalid stock value")
+		c.Redirect(http.StatusSeeOther, "/app/product/"+code+"/edit")
+		return
+	}
+	stockInt32 := int32(stockInt64)
+
+	priceFloat64, err := strconv.ParseFloat(price, 64)
+	if err != nil {
+		s.logger.Warn("Invalid price value in edit product handler")
+		s.setErrorMessage(c, "Invalid price value")
+		c.Redirect(http.StatusSeeOther, "/app/product/"+code+"/edit")
+		return
+	}
+
+	succ, err := s.orchestrator.UpdateProduct(code, name, sizeModel, color, description, stockInt32, priceFloat64)
+	if err != nil {
+		s.logger.Error("Error updating the product with code '%s': %v", code, err)
+		s.setErrorMessage(c, interalServerErrorMsg)
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+	if !succ {
+		s.logger.Warn("Failed update for product with code '%s'", code)
+		s.setErrorMessage(c, fmt.Sprintf("Product update failed: product not found"))
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+
+	s.logger.Info("Successful update of product with code '%s'", code)
+	c.Redirect(http.StatusSeeOther, "/app/product/")
+}
+
+func (s *HTTPWebServer) DeleteProductHandler(c *gin.Context) {
+	code := c.Param("code")
+	if code == "" {
+		s.logger.Warn("Missing code parameter in delete product handler")
+		s.setErrorMessage(c, "Missing product code")
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+
+	succ, err := s.orchestrator.DeleteProduct(code)
+	if err != nil {
+		s.logger.Error("Error deleting the product with code '%s': %v", code, err)
+		s.setErrorMessage(c, interalServerErrorMsg)
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+	if !succ {
+		s.logger.Warn("Failed delete of product with code '%s'", code)
+		s.setErrorMessage(c, fmt.Sprintf("Product delete failed: product not found"))
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+
+	s.logger.Info("Successful delete of product with code '%s'", code)
+	c.Redirect(http.StatusSeeOther, "/app/product/")
+}
+
+func (s *HTTPWebServer) ProductGetHandler(c *gin.Context) {
+	isLoggedIn := true
+	username, ok := s.getUsernameFromSessionOrRedirect(c)
+	if !ok {
+		return // method getUsernameFromSessionOrRedirect already did the redirect
+	}
+
+	code := c.Param("code")
+	if code == "" {
+		s.logger.Warn("Missing code parameter in get product handler")
+		s.setErrorMessage(c, "Missing product code")
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+
+	succ, prod, err := s.orchestrator.GetProduct(code)
+	if err != nil {
+		s.logger.Error("Error during retrieval of product with code '%s': %v", code, err)
+		s.setErrorMessage(c, interalServerErrorMsg)
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+	if !succ {
+		s.logger.Warn("Product with code '%s' not found")
+		s.setErrorMessage(c, "Product not found")
+		c.Redirect(http.StatusSeeOther, "/app/product/")
+		return
+	}
+
+	c.HTML(http.StatusOK, "buyProduct.tmpl", gin.H{
+		"Title":       "Buy Product - Ecommerce",
+		"Username":    username,
+		"Code":        prod.Code,
+		"Name":        prod.Name,
+		"Size":        prod.Size.String(),
+		"Color":       prod.Color,
+		"Description": prod.Description,
+		"Stock":       prod.Stock,
+		"Price":       prod.Price,
+		"Flash":       s.getFlashMessage(c),
+		"Error":       s.getErrorMessage(c),
+		"IsLoggedIn":  isLoggedIn,
+	})
+}
+
+/*
+* UTILITIES
+ */
 
 func (s *HTTPWebServer) setFlashMessage(c *gin.Context, message string) {
 	session := sessions.Default(c)

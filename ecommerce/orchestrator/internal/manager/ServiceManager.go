@@ -167,7 +167,7 @@ func (sm *ServiceManager) monitorService(ctx context.Context, name, addr string)
 		}
 
 		// Service is healthy: set status and keep the connection.
-		//sm.logger.Info("Service '%s' is SERVING at address '%s'", name, addr) // too much verbosity
+		sm.logger.Info("Service '%s' is SERVING at address '%s'", name, addr) // too much verbosity
 		sm.setServiceStatus(name, conn, true)
 
 		// while service is up, wait upInterval, then re-check.
@@ -225,7 +225,7 @@ func (sm *ServiceManager) setServiceStatus(name string, conn *grpc.ClientConn, r
 	// If there is an existing connection different from the new one, close it.
 	if current.Conn != nil && current.Conn != conn {
 		_ = current.Conn.Close()
-		//sm.logger.Info("Closed previous connection for service '%s'", name) // too much verbosity
+		// sm.logger.Info("Closed previous connection for service '%s'", name) // too much verbosity
 	}
 
 	current.Conn = conn

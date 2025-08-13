@@ -10,6 +10,7 @@
             color: red;
             margin-bottom: 10px;
         }
+
         .flash {
             color: green;
             margin-bottom: 10px;
@@ -27,27 +28,27 @@
 </head>
 
 <body>
-    <header>
-        <h1>My Ecommerce</h1>
-        <nav>
+    <header style="background:#333;color:#fff;padding:10px 20px;">
+        <h1 style="display:inline-block;margin:0;font-size:1.5em;">Ecommerce</h1>
+        <nav style="float:right;">
             {{if .IsLoggedIn}}
-            <div class="user-info">
-                <div>Welcome {{.Username}}</div>
-                <a href="/app/">Home</a>
-                <div><a href="/app/user-profile">Profile</a></div>
-                <div><a href="/app/change-password">Change your password</a></div>
-                <div><a href="/app/logout">Logout</a></div>
-            </div>
+            <span style="margin-right:15px;">Hello {{.Username}}</span>
+            <a href="/app/" style="color:#fff;text-decoration:none;margin-left:10px;">Home</a>
+            <a href="/app/user/profile" style="color:#fff;text-decoration:none;margin-left:10px;">Profile</a>
+            <a href="/app/user/password" style="color:#fff;text-decoration:none;margin-left:10px;">Change Password</a>
+            <a href="/app/user/logout" style="color:#fff;text-decoration:none;margin-left:10px;">Logout</a>
             {{else}}
-            <a href="/login">Login</a> | <a href="/register">Register</a>
+            <a href="/login" style="color:#fff;text-decoration:none;margin-left:10px;">Login</a>
+            <a href="/register" style="color:#fff;text-decoration:none;margin-left:10px;">Register</a>
             {{end}}
         </nav>
     </header>
+
     <main>
         {{if .Flash}}
-            <div class="flash">{{.Flash}}</div>
+        <div class="flash">{{.Flash}}</div>
         {{end}}
         {{if .Error}}
-            <div class="error">{{.Error}}</div>
+        <div class="error">{{.Error}}</div>
         {{end}}
-{{end}}
+        {{end}}

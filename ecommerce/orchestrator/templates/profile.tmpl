@@ -1,9 +1,7 @@
 {{template "header.tmpl" .}}
 <h2>User Profile</h2>
 
-<form method="POST" action="/app/user-profile">
-    <!-- Hidden field to simulate the PATCH operation -->
-    <input type="hidden" name="_method" value="PATCH">
+<form method="POST" action="/app/user/profile">
     <input type="hidden" name="role" value="{{.User.Role}}">
     
     <p><strong>Username:</strong> {{.User.Username}}</p>

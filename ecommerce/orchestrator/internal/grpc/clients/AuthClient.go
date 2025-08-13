@@ -11,6 +11,8 @@ import (
 )
 
 // AuthClient is a gRPC client for communicating with the authentication service.
+//
+// Implements the AuthClientInterface
 type AuthClient struct {
 	serviceName string
 	sm          *manager.ServiceManager
@@ -148,6 +150,7 @@ func (c *AuthClient) ChangePassword(username, oldPassword, newPassword string) (
 	return true, nil
 }
 
+// UpdateUser updates user email, phone or role.
 func (c *AuthClient) UpdateUser(username, email, phone string, role pb.Role) (bool, error) {
 	if username == "" {
 		c.logger.Error("Username empty in update user request")
@@ -256,15 +259,15 @@ func (c *AuthClient) GetUsers() (bool, []*pb.User, error) {
 	return true, res.GetUsers(), nil
 }
 
-// getClient retrieves a new AuthenticationClient connected to the service.
+// getClient retrieves a new AuthenticationServiceClient connected to the service.
 //
 // Returns:
-//   - pb.AuthenticationClient: the gRPC client to communicate with the auth service
+//   - pb.AuthenticationServiceClient: the gRPC client to communicate with the auth service
 //   - error: non-nil if connection setup failed
-func (c *AuthClient) getClient() (pb.AuthenticationClient, error) {
+func (c *AuthClient) getClient() (pb.AuthenticationServiceClient, error) {
 	conn, err := c.sm.GetConnWithTimeout(c.serviceName, c.timeout)
 	if err != nil {
 		return nil, err
 	}
-	return pb.NewAuthenticationClient(conn), nil
+	return pb.NewAuthenticationServiceClient(conn), nil
 }

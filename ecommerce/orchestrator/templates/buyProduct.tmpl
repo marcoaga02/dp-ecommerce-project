@@ -1,0 +1,85 @@
+{{template "header.tmpl" .}}
+<style>
+    .products-table {
+        width: 100%; 
+        border-collapse: collapse;
+    }
+
+    .center-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .quantity-input {
+        width: 60px;
+        text-align: center;
+    }
+
+    .add-cart-btn {
+        background: #007bff; 
+        color: white; 
+        padding: 6px 12px; 
+        border: none; 
+        border-radius: 3px; 
+        cursor: pointer;
+        font-size: inherit;
+    }
+
+    .stock-available {
+        color: green;
+    }
+
+    .stock-out {
+        color: red;
+    }
+</style>
+
+<h2>Available Products</h2>
+
+<table border="1" cellpadding="5" cellspacing="0" class="products-table">
+    <thead>
+        <tr>
+            <th style="display:none;">Code</th>
+            <th>Name</th>
+            <th class="center-cell">Size</th>
+            <th class="center-cell">Color</th>
+            <th>Description</th>
+            <th class="center-cell">Availability</th>
+            <th class="center-cell">Price</th>
+            <th class="center-cell">Quantity</th>
+            <th class="center-cell">Add to Cart</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="display:none;">{{.Code}}</td>
+            <td>{{.Name}}</td>
+            <td class="center-cell">{{.Size}}</td>
+            <td class="center-cell">{{.Color}}</td>
+            <td>{{.Description}}</td>
+            <td class="center-cell">
+                {{if gt .Stock 0}}
+                <span class="stock-available">{{.Stock}} in stock</span>
+                {{else}}
+                <span class="stock-out">Out of stock</span>
+                {{end}}
+            </td>
+            <td class="center-cell">{{.Price}} €</td>
+            <td class="center-cell">
+                <form action="/app/cart/add" method="POST" style="display: flex; justify-content: center; align-items: center;">
+                    <input type="hidden" name="code" value="{{.Code}}">
+                    <input type="number" name="quantity" min="1" max="{{.Stock}}" value="1" class="quantity-input" {{if eq .Stock 0}}disabled{{end}}>
+            </td>
+            <td class="center-cell">
+                    <button type="submit" class="add-cart-btn" {{if eq .Stock 0}}disabled{{end}}>Add to Cart</button>
+                </form>
+            </td>
+        </tr>
+    </tbody>
+
+</table>
+<p>
+    <a href="/app/product/" style="margin-bottom: 15px; display: inline-block;">Back to Products</a>
+</p>
+
+{{template "footer.tmpl" .}}

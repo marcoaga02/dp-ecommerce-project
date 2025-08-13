@@ -1,0 +1,131 @@
+{{template "header.tmpl" .}}
+<style>
+    .add-product-btn {
+        background: #007bff; 
+        color: white; 
+        padding: 8px 16px; 
+        text-decoration: none; 
+        border-radius: 4px;
+    }
+    
+    .products-table {
+        width: 100%; 
+        border-collapse: collapse;
+    }
+
+    .center-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+    
+    .actions-cell {
+        white-space: nowrap; 
+        text-align: center; 
+        vertical-align: middle;
+    }
+    
+    .edit-btn {
+        background: #28a745; 
+        color: white; 
+        padding: 6px 12px; 
+        text-decoration: none; 
+        border-radius: 3px; 
+        margin-right: 5px; 
+        display: inline-block; 
+        line-height: 1.2;
+    }
+    
+    .delete-form {
+        display: inline-block; 
+        margin: 0;
+    }
+    
+    .delete-btn {
+        background: #dc3545; 
+        color: white; 
+        padding: 6px 12px; 
+        border: none; 
+        border-radius: 3px; 
+        cursor: pointer; 
+        font-size: inherit; 
+        font-family: inherit; 
+        line-height: 1.2; 
+        height: auto;
+    }
+
+    .buy-btn {
+        background: #007bff;
+        color: white;
+        padding: 6px 12px;
+        text-decoration: none;
+        border-radius: 3px;
+        display: inline-block;
+        line-height: 1.2;
+    }
+    
+    .stock-available {
+        color: green;
+    }
+    
+    .stock-out {
+        color: red;
+    }
+</style>
+
+<h2>List of Products</h2>
+{{if eq .Role "administrator"}}
+<div style="margin-bottom: 20px;">
+    <a href="/app/product/new" class="add-product-btn">Add New Product</a>
+</div>
+{{end}}
+<table border="1" cellpadding="5" cellspacing="0" class="products-table">
+    <thead>
+        <tr>
+            <th style="display:none;">Code</th>
+            <th>Name</th>
+            <th class="center-cell">Size</th>
+            <th class="center-cell">Color</th>
+            <th>Description</th>
+            <th class="center-cell">Availability</th>
+            <th class="center-cell">Price</th>
+            {{if eq .Role "administrator"}}
+            <th>Actions</th>
+            {{end}}
+            <th>Buy</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Products}}
+        <tr>
+            <td style="display:none;">{{.Code}}</td>
+            <td>{{.Name}}</td>
+            <td class="center-cell">{{.Size}}</td>
+            <td class="center-cell">{{.Color}}</td>
+            <td>{{.Description}}</td>
+            <td class="center-cell">
+                {{if gt .Stock 0}}
+                <span class="stock-available">{{.Stock}} in stock</span>
+                {{else}}
+                <span class="stock-out">Out of stock</span>
+                {{end}}
+            </td>
+            <td class="center-cell">{{.Price}} €</td>
+            {{if eq $.Role "administrator"}}
+            <td class="actions-cell">
+                <a href="/app/product/{{.Code}}/edit" class="edit-btn">Edit</a>
+                <form action="/app/product/{{.Code}}/delete" method="POST" class="delete-form">
+                    <button type="submit" class="delete-btn"
+                            onclick="return confirm('Are you sure you want to delete {{.Name}}?')">
+                        Delete
+                    </button>
+                </form>
+            </td>
+            {{end}}
+            <td class="center-cell">
+                <a href="/app/product/{{.Code}}" class="buy-btn">Buy</a>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{template "footer.tmpl" .}}

@@ -12,6 +12,17 @@ const (
 	RoleAdmin       Role = "administrator"
 )
 
+var RoleMapStrToRole = map[string]Role{
+	"client":        RoleClient,
+	"administrator": RoleAdmin,
+}
+
+var RoleMapRoleToStr = map[Role]string{
+	RoleClient: "client",
+	RoleAdmin:  "administrator",
+}
+
+// ProtoRoleToModelRole converts a pb.Role into a model.Role
 func ProtoRoleToModelRole(pr pb.Role) Role {
 	switch pr {
 	case pb.Role_CLIENT:
@@ -23,6 +34,7 @@ func ProtoRoleToModelRole(pr pb.Role) Role {
 	}
 }
 
+// ModelRoleToProtoRole converts a model.Role into a pb.Role
 func ModelRoleToProtoRole(r Role) pb.Role {
 	switch r {
 	case RoleClient:

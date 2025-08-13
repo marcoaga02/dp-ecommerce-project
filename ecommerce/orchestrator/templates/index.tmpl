@@ -4,10 +4,15 @@
 <p>Where you can buy clothes for every occasion</p>
 
 {{if eq .Role "administrator"}}
-    <div>
+    <section style="margin-bottom: 20px;">
+        <h2>Administrator Panel</h2>
         <a href="/app/admin/users">Manage Users</a>
-    </div>
+    </section>
 {{end}}
 
+<section>
+    <h2>Products</h2>
+    <a href="/app/product/">Browse Products</a>
+</section>
 
 {{template "footer.tmpl" .}}
