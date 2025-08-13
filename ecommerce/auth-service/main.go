@@ -49,11 +49,11 @@ func main() {
 	authServer := internal.NewAuthServer(gormAuthRepo, logger.NewStdLogger(logLevel, "auth-service/server"))
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterAuthenticationServer(grpcServer, authServer)
+	pb.RegisterAuthenticationServiceServer(grpcServer, authServer)
 
 	// gRPC Health Server
 	healthServer := health.NewServer()
-	healthServer.SetServingStatus("auth.Authentication", healthpb.HealthCheckResponse_SERVING)
+	healthServer.SetServingStatus("auth.AuthenticationService", healthpb.HealthCheckResponse_SERVING)
 	healthpb.RegisterHealthServer(grpcServer, healthServer)
 
 	myLogger.Info("Auth service listening on port %s", port)

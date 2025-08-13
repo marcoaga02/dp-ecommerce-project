@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/auth-service/pkg/repository"
+	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/auth-service/internal/interfaces"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
 	pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/auth"
 	"google.golang.org/grpc/codes"
@@ -14,8 +14,8 @@ import (
 
 // AuthServer implements the authentication service gRPC server.
 type AuthServer struct {
-	pb.UnimplementedAuthenticationServer
-	db     repository.AuthServiceInterface
+	pb.UnimplementedAuthenticationServiceServer
+	db     interfaces.AuthServiceInterface
 	logger logger.Logger
 }
 
@@ -26,7 +26,7 @@ var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-
 var phoneRegex = regexp.MustCompile(`^\+?[0-9]+$`)
 
 // NewAuthServer creates a new instance of AuthServer.
-func NewAuthServer(db repository.AuthServiceInterface, logger logger.Logger) *AuthServer {
+func NewAuthServer(db interfaces.AuthServiceInterface, logger logger.Logger) *AuthServer {
 	return &AuthServer{
 		db:     db,
 		logger: logger,
