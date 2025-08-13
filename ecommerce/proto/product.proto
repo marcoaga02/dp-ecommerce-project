@@ -35,6 +35,7 @@ message Product {
   string color = 4;
   string description = 5;
   int32 stock = 6;
+  double price = 7;
 }
 
 // CREATE

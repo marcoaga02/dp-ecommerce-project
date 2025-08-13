@@ -104,7 +104,7 @@ message GetUsersResponse {
 }
 
 // SERVICES
-service Authentication {
+service AuthenticationService {
     rpc Login(LoginRequest) returns (LoginResponse);
     rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse);
