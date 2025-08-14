@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/auth-service/internal/model"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
 	pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/auth"
@@ -93,7 +92,6 @@ func (r *GormAuthRepository) Register(username, password, email, phone string) (
 	}
 
 	newUser := model.User{
-		ID:           uuid.New().String(),
 		Username:     username,
 		PasswordHash: hashedPassword,
 		Email:        email,

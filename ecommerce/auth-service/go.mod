@@ -9,7 +9,6 @@ replace github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto => ../proto
 replace github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger => ../logger
 
 require (
-	github.com/google/uuid v1.6.0
 	github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger v0.0.0-00010101000000-000000000000
 	github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto v0.0.0-20250803130941-72ac65b63311
 	golang.org/x/crypto v0.38.0

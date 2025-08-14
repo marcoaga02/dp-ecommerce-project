@@ -19,8 +19,7 @@ INSERT INTO sizes (id, name) VALUES
 
 DROP TABLE IF EXISTS products;
 CREATE TABLE products (
-    id CHAR(36) PRIMARY KEY,
-    code VARCHAR(32) NOT NULL UNIQUE,
+    code VARCHAR(32) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     size_id INT NOT NULL,
     color VARCHAR(30) NOT NULL,

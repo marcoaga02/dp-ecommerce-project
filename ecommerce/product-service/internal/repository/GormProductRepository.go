@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/google/uuid"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/logger"
 	"github.com/marcoaga02/dp-ecommerce-project/ecommerce/product-service/internal/model"
 	pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/product"
@@ -77,7 +76,6 @@ func (r *GormProductRepository) CreateProduct(prod *pb.Product) (bool, error) {
 	}
 
 	newProd := model.Product{
-		ID:          uuid.New().String(),
 		Code:        prod.Code,
 		Name:        prod.Name,
 		SizeID:      sizeID,

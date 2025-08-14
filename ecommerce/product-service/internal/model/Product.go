@@ -1,8 +1,7 @@
 package model
 
 type Product struct {
-	ID          string `gorm:"column:id;type:char(36);primaryKey"`
-	Code        string `gorm:"column:code;type:varchar(32);uniqueIndex;not null"`
+	Code        string `gorm:"column:code;type:varchar(32);primaryKey"`
 	Name        string `gorm:"column:name;type:varchar(255);not null"`
 	SizeID      int    `gorm:"column:size_id;not null"` // foreign key
 	Size        Size   `gorm:"foreignKey:SizeID"`       // GORM relationship

@@ -12,8 +12,7 @@ INSERT INTO roles (id, name) VALUES (0, 'UNSPECIFIED'), (1, 'CLIENT'), (2, 'ADMI
 
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
-    id CHAR(36) PRIMARY KEY,
-    username VARCHAR(32) NOT NULL UNIQUE,
+    username VARCHAR(32) PRIMARY KEY,
     password_hash VARCHAR(255) NOT NULL,
     email VARCHAR(64) NOT NULL UNIQUE,
     phone VARCHAR(20) NOT NULL,
