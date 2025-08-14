@@ -161,6 +161,22 @@ func (s *AuthServer) UpdateUser(ctx context.Context, in *pb.UpdateUserRequest) (
 		}, status.Error(codes.InvalidArgument, "Username must be provided and not empty")
 	}
 
+	if in.Email != "" && !isValidEmail(in.Email) {
+		s.logger.Warn("Invalid email format in update user request: %s", in.Email)
+		return &pb.UpdateUserResponse{
+			Success:      false,
+			ErrorMessage: "Invalid email format",
+		}, status.Error(codes.InvalidArgument, "Invalid email format")
+	}
+
+	if in.Email != "" && !isValidPhone(in.Phone) {
+		s.logger.Warn("Invalid phone number in update user request: %s", in.Phone)
+		return &pb.UpdateUserResponse{
+			Success:      false,
+			ErrorMessage: "Invalid phone number",
+		}, status.Error(codes.InvalidArgument, "Invalid phone number")
+	}
+
 	succ, err := s.db.UpdateUser(in.Username, in.Email, in.Phone, in.Role)
 	if err != nil {
 		s.logger.Error("Internal error while updating user '%s': %v", in.Username, err)
