@@ -46,7 +46,7 @@ func main() {
 	})
 	router.Use(sessions.Sessions("ecommerce_session", store))
 
-	router.LoadHTMLGlob("./orchestrator/templates/*.tmpl")
+	router.LoadHTMLGlob("./orchestrator/templates/*.html")
 
 	webServer := server.NewHTTPWebServer(router, srv_orch, logger.NewStdLogger(logLevel, "web-server-HTTP"))
 

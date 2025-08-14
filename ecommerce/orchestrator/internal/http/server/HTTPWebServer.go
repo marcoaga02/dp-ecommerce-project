@@ -103,7 +103,7 @@ func (s *HTTPWebServer) IndexHandler(c *gin.Context) {
 	roleStr, ok := model.RoleMapRoleToStr[role]
 	if err != nil || !ok {
 		s.logger.Error("Error fetching user role or unknown role: %v", err)
-		c.HTML(http.StatusInternalServerError, "index.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "index.html", gin.H{
 			"Title":      "Welcome - Ecommerce",
 			"Error":      interalServerErrorMsg,
 			"IsLoggedIn": isLoggedIn,
@@ -111,7 +111,7 @@ func (s *HTTPWebServer) IndexHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{
+	c.HTML(http.StatusOK, "index.html", gin.H{
 		"Title":      "Welcome - Ecommerce",
 		"Username":   username,
 		"Role":       roleStr,
@@ -132,7 +132,7 @@ func (s *HTTPWebServer) LoginGetHandler(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/app/")
 		return
 	}
-	c.HTML(http.StatusOK, "login.tmpl", gin.H{
+	c.HTML(http.StatusOK, "login.html", gin.H{
 		"Title":      "Login - Ecommerce",
 		"Flash":      s.getFlashMessage(c),
 		"Error":      s.getErrorMessage(c),
@@ -187,7 +187,7 @@ func (s *HTTPWebServer) RegisterGetHandler(c *gin.Context) {
 		c.Redirect(http.StatusFound, "/app/")
 		return
 	}
-	c.HTML(http.StatusOK, "register.tmpl", gin.H{
+	c.HTML(http.StatusOK, "register.html", gin.H{
 		"Title":      "Register - Ecommerce",
 		"Flash":      s.getFlashMessage(c),
 		"Error":      s.getErrorMessage(c),
@@ -198,8 +198,16 @@ func (s *HTTPWebServer) RegisterGetHandler(c *gin.Context) {
 func (s *HTTPWebServer) RegisterPostHandler(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
+	confirmPass := c.PostForm("confirm-password")
 	email := c.PostForm("email")
 	phone := c.PostForm("phone")
+
+	if password != confirmPass {
+		s.logger.Warn("Password and confirmation do not match in register request")
+		s.setErrorMessage(c, "Your password confirmation doesn’t match the password.")
+		c.Redirect(http.StatusSeeOther, "/register")
+		return
+	}
 
 	succ, err := s.orchestrator.Register(username, password, email, phone)
 	if err != nil {
@@ -226,7 +234,7 @@ func (s *HTTPWebServer) ChangePasswordGetHandler(c *gin.Context) {
 		return // method getUsernameFromSessionOrRedirect already did the redirect
 	}
 
-	c.HTML(http.StatusOK, "changePassword.tmpl", gin.H{
+	c.HTML(http.StatusOK, "changePassword.html", gin.H{
 		"Title":      "Change Password - Ecommerce",
 		"Username":   username,
 		"Flash":      s.getFlashMessage(c),
@@ -242,6 +250,14 @@ func (s *HTTPWebServer) ChangePasswordPostHandler(c *gin.Context) {
 	}
 	currentPassword := c.PostForm("current_password")
 	newPassword := c.PostForm("new_password")
+	confirmPass := c.PostForm("confirm-password")
+
+	if newPassword != confirmPass {
+		s.logger.Warn("Password and confirmation do not match in change password request")
+		s.setErrorMessage(c, "Your password confirmation doesn’t match the new password.")
+		c.Redirect(http.StatusSeeOther, "/app/user/password")
+		return
+	}
 
 	succ, err := s.orchestrator.ChangePassword(username, currentPassword, newPassword)
 	if err != nil {
@@ -270,7 +286,7 @@ func (s *HTTPWebServer) UserProfileGetHandler(c *gin.Context) {
 	succ, user, err := s.orchestrator.GetUser(username)
 	if err != nil {
 		s.logger.Error("User retrieval error: %v", err)
-		c.HTML(http.StatusInternalServerError, "profile.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "profile.html", gin.H{
 			"Title":      "User Profile - Ecommerce",
 			"Error":      interalServerErrorMsg,
 			"IsLoggedIn": isLoggedIn,
@@ -279,7 +295,7 @@ func (s *HTTPWebServer) UserProfileGetHandler(c *gin.Context) {
 	}
 	if !succ {
 		s.logger.Warn("User retrieval failed: User not found")
-		c.HTML(http.StatusNotFound, "profile.tmpl", gin.H{ // ← profile.tmpl + 404!
+		c.HTML(http.StatusNotFound, "profile.html", gin.H{ // ← profile.html + 404!
 			"Title":      "User Profile - Ecommerce",
 			"Error":      "User not found",
 			"IsLoggedIn": isLoggedIn,
@@ -287,14 +303,12 @@ func (s *HTTPWebServer) UserProfileGetHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "profile.tmpl", gin.H{
-		"Title": "User Profile - Ecommerce",
-		"User": gin.H{
-			"Username": username,
-			"Email":    user.Email,
-			"Phone":    user.Phone,
-			"Role":     user.Role.String(),
-		},
+	c.HTML(http.StatusOK, "profile.html", gin.H{
+		"Title":      "User Profile - Ecommerce",
+		"Username":   username,
+		"Email":      user.Email,
+		"Phone":      user.Phone,
+		"Role":       user.Role.String(),
 		"Flash":      s.getFlashMessage(c),
 		"Error":      s.getErrorMessage(c),
 		"IsLoggedIn": isLoggedIn,
@@ -337,7 +351,7 @@ func (s *HTTPWebServer) UsersGetHandler(c *gin.Context) {
 	succ, users, err := s.orchestrator.GetUsers()
 	if err != nil {
 		s.logger.Error("Error retrieving users: %v", err)
-		c.HTML(http.StatusInternalServerError, "adminUsers.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "adminUsers.html", gin.H{
 			"Title":      "Manage Users - Ecommerce",
 			"Username":   username,
 			"Error":      interalServerErrorMsg,
@@ -347,7 +361,7 @@ func (s *HTTPWebServer) UsersGetHandler(c *gin.Context) {
 	}
 	if !succ {
 		s.logger.Warn("Users retrieval failed")
-		c.HTML(http.StatusInternalServerError, "adminUsers.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "adminUsers.html", gin.H{
 			"Title":      "Manage Users - Ecommerce",
 			"Username":   username,
 			"Error":      "Users retrieval failed",
@@ -367,7 +381,7 @@ func (s *HTTPWebServer) UsersGetHandler(c *gin.Context) {
 			})
 		}
 	}
-	c.HTML(http.StatusOK, "adminUsers.tmpl", gin.H{
+	c.HTML(http.StatusOK, "adminUsers.html", gin.H{
 		"Title":      "Manage Users - Ecommerce",
 		"Users":      usersForTemplate,
 		"Username":   username,
@@ -469,7 +483,7 @@ func (s *HTTPWebServer) ListProductsGetHandler(c *gin.Context) {
 	roleStr, ok := model.RoleMapRoleToStr[role]
 	if err != nil || !ok {
 		s.logger.Error("Error fetching user role or unknown role: %v", err)
-		c.HTML(http.StatusInternalServerError, "productsList.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "productsList.html", gin.H{
 			"Title":      "Products List - Ecommerce",
 			"Username":   username,
 			"Error":      interalServerErrorMsg,
@@ -481,7 +495,7 @@ func (s *HTTPWebServer) ListProductsGetHandler(c *gin.Context) {
 	succ, prods, err := s.orchestrator.GetProductLists()
 	if err != nil {
 		s.logger.Error("Error retrieving products: %v", err)
-		c.HTML(http.StatusInternalServerError, "productsList.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "productsList.html", gin.H{
 			"Title":      "Products List - Ecommerce",
 			"Username":   username,
 			"Role":       roleStr,
@@ -492,7 +506,7 @@ func (s *HTTPWebServer) ListProductsGetHandler(c *gin.Context) {
 	}
 	if !succ {
 		s.logger.Warn("Products retrieval failed")
-		c.HTML(http.StatusInternalServerError, "productsList.tmpl", gin.H{
+		c.HTML(http.StatusInternalServerError, "productsList.html", gin.H{
 			"Title":      "Products List - Ecommerce",
 			"Username":   username,
 			"Role":       roleStr,
@@ -514,7 +528,7 @@ func (s *HTTPWebServer) ListProductsGetHandler(c *gin.Context) {
 			"Price":       p.Price,
 		})
 	}
-	c.HTML(http.StatusOK, "productsList.tmpl", gin.H{
+	c.HTML(http.StatusOK, "productsList.html", gin.H{
 		"Title":      "Products List - Ecommerce",
 		"Products":   prodsForTemplate,
 		"Username":   username,
@@ -532,7 +546,7 @@ func (s *HTTPWebServer) NewProductGetHandler(c *gin.Context) {
 		return // method getUsernameFromSessionOrRedirect already did the redirect
 	}
 
-	c.HTML(http.StatusOK, "createProduct.tmpl", gin.H{
+	c.HTML(http.StatusOK, "createProduct.html", gin.H{
 		"Title":      "Products List - Ecommerce",
 		"Sizes":      model.AllSizes,
 		"Username":   username,
@@ -623,7 +637,7 @@ func (s *HTTPWebServer) EditProductGetHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "editProduct.tmpl", gin.H{
+	c.HTML(http.StatusOK, "editProduct.html", gin.H{
 		"Title":    "Edit Product - Ecommerce",
 		"Sizes":    model.AllSizes,
 		"Username": username,
@@ -756,7 +770,7 @@ func (s *HTTPWebServer) ProductGetHandler(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "buyProduct.tmpl", gin.H{
+	c.HTML(http.StatusOK, "buyProduct.html", gin.H{
 		"Title":       "Buy Product - Ecommerce",
 		"Username":    username,
 		"Code":        prod.Code,
