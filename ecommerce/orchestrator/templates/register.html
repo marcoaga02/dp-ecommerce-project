@@ -1,0 +1,72 @@
+{{template "header.html" .}}
+<style>
+    .register-form {
+        max-width: 400px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .register-form h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .register-form label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .register-form input[type="text"],
+    .register-form input[type="password"],
+    .register-form input[type="email"],
+    .register-form input[type="tel"] {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        margin-bottom: 15px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    .register-form button {
+        width: 100%;
+        background: #007bff;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .register-form button:hover {
+        background: #0056b3;
+    }
+</style>
+
+<form action="/register" method="POST" class="register-form">
+    <h2>Register</h2>
+
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" value="{{.Username}}" required>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+
+    <label for="password">Confirm Password:</label>
+    <input type="password" id="confirm-password" name="confirm-password" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" value="{{.Email}}" required>
+
+    <label for="phone">Phone:</label>
+    <input type="tel" id="phone" name="phone" value="{{.Phone}}" required>
+
+    <button type="submit">Register</button>
+</form>
+{{template "footer.html" .}}

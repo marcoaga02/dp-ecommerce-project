@@ -1,0 +1,23 @@
+{{define "footer.html"}}
+</main>
+<footer style="background:#333;color:#fff;text-align:center;padding:15px 0;border-top:2px solid #555;position:relative;">
+    <p style="margin:0;font-size:0.9em;">&copy; 2025 My Ecommerce</p>
+</footer>
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column; /* Arrange children vertically instead of horizontally */
+    }
+    main {
+        flex: 1 0 auto; /*the main occupies the entire page*/
+    }
+    footer {
+        flex-shrink: 0; /*the footer cannot be reduced*/
+    }
+</style>
+</body>
+</html>
+{{end}}

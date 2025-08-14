@@ -1,0 +1,100 @@
+{{define "header.html"}}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Title}}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        header {
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center; /*vertically align elements to the centre*/
+            justify-content: space-between; /*put the title on the left and the nav on the right*/
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5em; /*1.5 times the base/default dimension*/
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin-left: 10px;
+            padding: 6px 12px;
+            background: #555;
+            border-radius: 4px;
+            transition: background 0.3s; /*slow down button colour change when passing with cursor*/
+            font-size: 0.9em;
+        }
+
+        nav a:hover {
+            background: #007bff;
+        }
+
+        .flash {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 10px 15px;
+            margin: 15px 20px;
+            border-radius: 5px;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 10px 15px;
+            margin: 15px 20px;
+            border-radius: 5px;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        .user-info {
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+
+        .user-info div {
+            margin: 2px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Ecommerce</h1>
+        <nav>
+            {{if .IsLoggedIn}}
+            <span class="user-info">Hello {{.Username}}</span>
+            <a href="/app/">Home</a>
+            <a href="/app/user/profile">Profile</a>
+            <a href="/app/user/password">Change Password</a>
+            <a href="/app/user/logout">Logout</a>
+            {{else}}
+            <a href="/login">Login</a>
+            <a href="/register">Register</a>
+            {{end}}
+        </nav>
+    </header>
+
+    <main>
+        {{if .Flash}}
+        <div class="flash">{{.Flash}}</div>
+        {{end}}
+        {{if .Error}}
+        <div class="error">{{.Error}}</div>
+        {{end}}
+{{end}}

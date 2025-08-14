@@ -1,0 +1,64 @@
+{{template "header.html" .}}
+<style>
+    .login-form {
+        max-width: 400px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .login-form h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .login-form label {
+        font-weight: bold;
+        display: block;
+        /*a label becom a block; this way, each label is on a different line*/
+        margin-bottom: 6px;
+    }
+
+    .login-form input[type="text"],
+    .login-form input[type="password"] {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        margin-bottom: 15px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    .login-form button {
+        width: 100%;
+        background: #007bff;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer; /*to change cursor while moving on the button*/
+    }
+
+    .login-form button:hover { /*actions to do when the mouse pointer moves over the button*/
+        background: #0056b3;
+    }
+</style>
+
+<form action="/login" method="POST" class="login-form">
+    <h2>Login</h2>
+
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" value="{{.Username}}" required>
+
+    <label for="password">Password:</label>
+    <div class="password-wrapper">
+        <input type="password" id="password" name="password" required>
+    </div>
+
+    <button type="submit">Login</button>
+</form>
+{{template "footer.html" .}}

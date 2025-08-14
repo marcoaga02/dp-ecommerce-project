@@ -1,0 +1,93 @@
+{{template "header.html" .}}
+<style>
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .users-table th, 
+    .users-table td {
+        padding: 10px;
+        text-align: center;
+    }
+
+    .users-table thead {
+        background: #f8f9fa;
+    }
+
+    .users-table th {
+        border-bottom: 2px solid #ddd;
+    }
+
+    .users-table td {
+        border-bottom: 1px solid #eee;
+    }
+
+    select {
+        padding: 4px 6px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+    }
+
+    .save-btn {
+        background: #28a745;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: inherit;
+        font-family: inherit;
+    }
+
+    .save-btn:hover {
+        background: #218838;
+    }
+</style>
+
+<h2>Manage Users</h2>
+
+<table class="users-table">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Users}}
+        <tr>
+            <td>{{.Username}}</td>
+            <td>{{.Email}}</td>
+            <td>{{.Phone}}</td>
+            <td>
+                <form method="POST" action="/app/admin/users/{{.Username}}/role">
+                    <select name="role">
+                        <option value="client" {{if eq .Role "client"}}selected{{end}}>Client</option>
+                        <option value="administrator" {{if eq .Role "administrator"}}selected{{end}}>Administrator</option>
+                    </select>
+            </td>
+            <td>
+                <button type="submit" class="save-btn">Save</button>
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+
+<script>
+    document.querySelectorAll('form select[name="role"]').forEach(select => {
+        const saveBtn = select.closest('form').querySelector('button[type="submit"]');
+        saveBtn.style.display = 'none';
+        const originalValue = select.value;
+        select.addEventListener('change', () => {
+            saveBtn.style.display = (select.value !== originalValue) ? 'inline-block' : 'none';
+        });
+    });
+</script>
+
+{{template "footer.html" .}}

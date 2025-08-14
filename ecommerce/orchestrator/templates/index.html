@@ -1,0 +1,62 @@
+{{template "header.html" .}}
+<style>
+    .welcome-container {
+        max-width: 600px;
+        margin: 40px auto;
+        text-align: center;
+    }
+
+    .welcome-container h1 {
+        margin-bottom: 10px;
+    }
+
+    .welcome-container p {
+        color: #555;
+        margin-bottom: 30px;
+    }
+
+    .panel {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .panel h2 {
+        margin-bottom: 15px;
+    }
+
+    .btn-link {
+        display: inline-block;
+        background: #007bff;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 16px;
+    }
+
+    .btn-link:hover {
+        background: #0056b3;
+    }
+</style>
+
+<div class="welcome-container">
+    <h1>Welcome to My Ecommerce</h1>
+    <p>Where you can buy clothes for every occasion</p>
+
+    {{if eq .Role "administrator"}}
+    <section class="panel">
+        <h2>Administrator Panel</h2>
+        <a href="/app/admin/users" class="btn-link">Manage Users</a>
+    </section>
+    {{end}}
+
+    <section class="panel">
+        <h2>Products</h2>
+        <a href="/app/product/" class="btn-link">Browse Products</a>
+    </section>
+</div>
+
+{{template "footer.html" .}}

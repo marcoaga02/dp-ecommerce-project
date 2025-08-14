@@ -1,7 +1,7 @@
-{{template "header.tmpl" .}}
+{{template "header.html" .}}
 <style>
     .products-table {
-        width: 100%; 
+        width: 100%;
         border-collapse: collapse;
     }
 
@@ -16,13 +16,25 @@
     }
 
     .add-cart-btn {
-        background: #007bff; 
-        color: white; 
-        padding: 6px 12px; 
-        border: none; 
-        border-radius: 3px; 
+        background: #007bff;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 3px;
         cursor: pointer;
         font-size: inherit;
+    }
+
+    .back-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        background: #007bff;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        text-align: center;
     }
 
     .stock-available {
@@ -32,9 +44,17 @@
     .stock-out {
         color: red;
     }
+
+    .add-cart-btn:hover {
+        background: #014a97;
+    }
+
+    .back-btn:hover {
+        background: #014a97;
+    }
 </style>
 
-<h2>Available Products</h2>
+<h2>Buy Product</h2>
 
 <table border="1" cellpadding="5" cellspacing="0" class="products-table">
     <thead>
@@ -66,12 +86,14 @@
             </td>
             <td class="center-cell">{{.Price}} €</td>
             <td class="center-cell">
-                <form action="/app/cart/add" method="POST" style="display: flex; justify-content: center; align-items: center;">
+                <form action="/app/cart/add" method="POST"
+                    style="display: flex; justify-content: center; align-items: center;">
                     <input type="hidden" name="code" value="{{.Code}}">
-                    <input type="number" name="quantity" min="1" max="{{.Stock}}" value="1" class="quantity-input" {{if eq .Stock 0}}disabled{{end}}>
+                    <input type="number" name="quantity" min="1" max="{{.Stock}}" value="1" class="quantity-input" {{if
+                        eq .Stock 0}}disabled{{end}}>
             </td>
             <td class="center-cell">
-                    <button type="submit" class="add-cart-btn" {{if eq .Stock 0}}disabled{{end}}>Add to Cart</button>
+                <button type="submit" class="add-cart-btn" {{if eq .Stock 0}}disabled{{end}}>Add to Cart</button>
                 </form>
             </td>
         </tr>
@@ -79,7 +101,7 @@
 
 </table>
 <p>
-    <a href="/app/product/" style="margin-bottom: 15px; display: inline-block;">Back to Products</a>
+    <a href="/app/product/" class="back-btn">Back to Products</a>
 </p>
 
-{{template "footer.tmpl" .}}
+{{template "footer.html" .}}

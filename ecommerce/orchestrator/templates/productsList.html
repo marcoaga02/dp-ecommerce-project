@@ -1,15 +1,15 @@
-{{template "header.tmpl" .}}
+{{template "header.html" .}}
 <style>
     .add-product-btn {
-        background: #007bff; 
-        color: white; 
-        padding: 8px 16px; 
-        text-decoration: none; 
+        background: #007bff;
+        color: white;
+        padding: 8px 16px;
+        text-decoration: none;
         border-radius: 4px;
     }
-    
+
     .products-table {
-        width: 100%; 
+        width: 100%;
         border-collapse: collapse;
     }
 
@@ -17,39 +17,40 @@
         text-align: center;
         vertical-align: middle;
     }
-    
+
     .actions-cell {
-        white-space: nowrap; 
-        text-align: center; 
+        white-space: nowrap;
+        text-align: center;
         vertical-align: middle;
     }
-    
+
     .edit-btn {
-        background: #28a745; 
-        color: white; 
-        padding: 6px 12px; 
-        text-decoration: none; 
-        border-radius: 3px; 
-        margin-right: 5px; 
-        display: inline-block; 
+        background: #28a745;
+        color: white;
+        padding: 6px 12px;
+        text-decoration: none;
+        border-radius: 3px;
+        margin-right: 5px;
+        display: inline-block;
         line-height: 1.2;
+        cursor: pointer;
     }
-    
+
     .delete-form {
-        display: inline-block; 
+        display: inline-block;
         margin: 0;
     }
-    
+
     .delete-btn {
-        background: #dc3545; 
-        color: white; 
-        padding: 6px 12px; 
-        border: none; 
-        border-radius: 3px; 
-        cursor: pointer; 
-        font-size: inherit; 
-        font-family: inherit; 
-        line-height: 1.2; 
+        background: #dc3545;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: inherit;
+        font-family: inherit;
+        line-height: 1.2;
         height: auto;
     }
 
@@ -61,14 +62,31 @@
         border-radius: 3px;
         display: inline-block;
         line-height: 1.2;
+        cursor: pointer;
     }
-    
+
     .stock-available {
         color: green;
     }
-    
+
     .stock-out {
         color: red;
+    }
+
+    .add-product-btn:hover {
+        background: #024d9c;
+    }
+
+    .edit-btn:hover {
+        background: #208337;
+    }
+
+    .delete-btn:hover {
+        background: #9c2632;
+    }
+
+    .buy-btn:hover {
+        background: #0058b6;
     }
 </style>
 
@@ -81,7 +99,9 @@
 <table border="1" cellpadding="5" cellspacing="0" class="products-table">
     <thead>
         <tr>
-            <th style="display:none;">Code</th>
+            {{if eq .Role "administrator"}}
+            <th>Code</th>
+            {{end}}
             <th>Name</th>
             <th class="center-cell">Size</th>
             <th class="center-cell">Color</th>
@@ -97,7 +117,11 @@
     <tbody>
         {{range .Products}}
         <tr>
-            <td style="display:none;">{{.Code}}</td>
+            {{if eq $.Role "administrator"}}
+            <td>{{.Code}}</td> <!-- visibile agli admin -->
+            {{else}}
+            <td style="display:none;">{{.Code}}</td> <!-- nascosto per gli altri -->
+            {{end}}
             <td>{{.Name}}</td>
             <td class="center-cell">{{.Size}}</td>
             <td class="center-cell">{{.Color}}</td>
@@ -115,7 +139,7 @@
                 <a href="/app/product/{{.Code}}/edit" class="edit-btn">Edit</a>
                 <form action="/app/product/{{.Code}}/delete" method="POST" class="delete-form">
                     <button type="submit" class="delete-btn"
-                            onclick="return confirm('Are you sure you want to delete {{.Name}}?')">
+                        onclick="return confirm('Are you sure you want to delete {{.Name}}?')">
                         Delete
                     </button>
                 </form>
@@ -128,4 +152,4 @@
         {{end}}
     </tbody>
 </table>
-{{template "footer.tmpl" .}}
+{{template "footer.html" .}}

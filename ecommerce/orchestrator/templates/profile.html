@@ -1,0 +1,132 @@
+{{template "header.html" .}}
+<style>
+    .profile-form {
+        max-width: 400px;
+        margin: 40px auto;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .profile-form h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .profile-form label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .profile-form input[type="text"],
+    .profile-form input[type="email"] {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        margin-bottom: 15px;
+        font-size: 14px;
+        background: #e9ecef;
+    }
+
+    .profile-form input:not([readonly]) {
+        background: white;
+        border-color: #007bff;
+    }
+
+    .profile-form .btn-group {
+        display: flex; /*make the div a flexible container*/
+        justify-content: center; /*to center its elements*/
+        gap: 10px; /*10 pixels between each button*/
+    }
+
+    .profile-form button {
+        padding: 10px 20px;
+        font-size: 14px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+    }
+
+    #editBtn {
+        background: #007bff;
+        color: white;
+    }
+
+    #saveBtn {
+        background: #28a745;
+        color: white;
+    }
+
+    #cancelBtn {
+        background: #dc3545;
+        color: white;
+    }
+
+    .info-text {
+        margin-bottom: 15px;
+    }
+
+    #editBtn:hover {
+        background: #024d9c;
+    }
+
+    #saveBtn:hover {
+        background: green;
+    }
+
+    #cancelBtn:hover {
+        background: red;
+    }
+</style>
+
+<form method="POST" action="/app/user/profile" class="profile-form">
+    <h2>User Profile</h2>
+    <input type="hidden" name="role" value="{{.Role}}">
+
+    <p class="info-text"><strong>Username:</strong> {{.Username}}</p>
+    <p class="info-text"><strong>Role:</strong> {{.Role}}</p>
+
+    <label>Email:</label>
+    <input type="email" name="email" value="{{.Email}}" readonly>
+
+    <label>Phone:</label>
+    <input type="text" name="phone" value="{{.Phone}}" readonly>
+
+    <div class="btn-group">
+        <button type="button" id="editBtn">Modify</button>
+        <button type="submit" id="saveBtn" style="display:none;">Save</button>
+        <button type="button" id="cancelBtn" style="display:none;">Cancel</button>
+    </div>
+</form>
+
+<script>
+    const editBtn = document.getElementById('editBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const inputs = document.querySelectorAll('input[type="email"], input[type="text"]');
+    const originalValues = {};
+
+    editBtn.addEventListener('click', () => {
+        inputs.forEach(input => {
+            originalValues[input.name] = input.value;
+            input.removeAttribute('readonly');
+        });
+        editBtn.style.display = 'none';
+        saveBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'inline-block';
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        inputs.forEach(input => {
+            input.value = originalValues[input.name];
+            input.setAttribute('readonly', true);
+        });
+        editBtn.style.display = 'inline-block';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+    });
+</script>
+{{template "footer.html" .}}
