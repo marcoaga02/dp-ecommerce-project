@@ -1,22 +1,22 @@
 services:
-  product:
-    container_name: ${PRODUCT_NAME}
+  cart:
+    container_name: ${CART_NAME}
     build:
       context: ../ecommerce
-      dockerfile: product-service/Dockerfile
+      dockerfile: cart-service/Dockerfile
       args:
         BUILD_MODE: ${BUILD_MODE:-dev}
       target: run
     restart: always
     depends_on:
-      product_db:
+      cart_db:
         condition: service_healthy
     expose:
       - "${GRPC_PORT}"
     environment:
       GRPC_PORT: ${GRPC_PORT}
-      DB_HOST: product_db
-      DB_NAME: product
+      DB_HOST: cart_db
+      DB_NAME: cart
       DB_PORT: ${DB_PORT}
       DB_PASSWORD: ${DB_PASSWORD}
       LOG_LEVEL: ${LOG_LEVEL}
@@ -30,7 +30,7 @@ services:
       retries: 10
     profiles: ["run"]
 
-  product_db:
+  cart_db:
     image: mariadb:latest
     restart: always
     expose:
@@ -38,8 +38,8 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ../ecommerce/product-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - product_db:/var/lib/mysql
+      - ../ecommerce/cart-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - cart_db:/var/lib/mysql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       start_period: 60s
@@ -56,4 +56,4 @@ networks:
     name: ecommerce_net
 
 volumes:
-  product_db:
+  cart_db:

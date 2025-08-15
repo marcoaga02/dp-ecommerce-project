@@ -38,7 +38,7 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - ../ecommerce/auth-service/db/setup.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../ecommerce/auth-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
       - auth_db:/var/lib/mysql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
