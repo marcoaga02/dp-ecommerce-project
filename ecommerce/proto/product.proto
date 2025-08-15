@@ -34,7 +34,7 @@ message Product {
   Size size = 3;
   string color = 4;
   string description = 5;
-  int32 stock = 6;
+  uint32 stock = 6;
   double price = 7;
 }
 

@@ -1,0 +1,92 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package cart;
+
+option go_package = "ecommerce/proto/cart";
+
+// CART ITEM
+message CartItem {
+  string username = 1;
+  string product_code = 2;
+  uint32 quantity = 3;
+}
+
+// ADD ITEM
+message AddItemRequest {
+  string username = 1;
+  string product_code = 2;
+  uint32 quantity = 3; // increments the quantity if the item is already present
+}
+
+message AddItemResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+// REMOVE ITEM by (user-product)
+message RemoveItemRequest {
+  string username = 1;
+  string product_code = 2;
+}
+
+message RemoveItemResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+// UPDATE QUANTITY
+message UpdateItemQuantityRequest {
+  string username = 1;
+  string product_code = 2;
+  uint32 quantity = 3;
+}
+
+message UpdateItemQuantityResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+// LIST CART ITEMS by user
+message ListCartItemsRequest {
+  string username = 1;
+}
+
+message ListCartItemsResponse {
+  bool success = 1;
+  repeated CartItem items = 2;
+  string error_message = 3;
+}
+
+// CLEAR CART by user
+message ClearCartRequest {
+  string username = 1;
+}
+
+message ClearCartResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
+
+// SERVICES
+service CartService {
+  rpc AddItem(AddItemRequest) returns (AddItemResponse);
+  rpc RemoveItem(RemoveItemRequest) returns (RemoveItemResponse);
+  rpc UpdateItemQuantity(UpdateItemQuantityRequest) returns (UpdateItemQuantityResponse);
+  rpc ListCartItems(ListCartItemsRequest) returns (ListCartItemsResponse);
+  rpc ClearCart(ClearCartRequest) returns (ClearCartResponse);
+}
