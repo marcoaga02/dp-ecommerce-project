@@ -17,6 +17,7 @@ type ProductServer struct {
 	logger logger.Logger
 }
 
+// NewProductServer returns a new ProductServer instance
 func NewProductServer(db interfaces.ProductServiceInterface, logger logger.Logger) *ProductServer {
 	return &ProductServer{
 		db:     db,
@@ -40,14 +41,6 @@ func (s *ProductServer) CreateProduct(ctx context.Context, in *pb.CreateProductR
 			Success:      false,
 			ErrorMessage: "The product size must be provided and must not be unspecified",
 		}, status.Error(codes.InvalidArgument, "The product size must be provided and must not be unspecified")
-	}
-
-	if in.Product.Stock < 0 {
-		s.logger.Warn("Negative stock values in create product request")
-		return &pb.CreateProductResponse{
-			Success:      false,
-			ErrorMessage: "The product stock must be provided and must be non-negative",
-		}, status.Error(codes.InvalidArgument, "The product stock must be provided and must be non-negative")
 	}
 
 	if in.Product.Price < 0 {
@@ -192,11 +185,11 @@ func (s *ProductServer) ListProducts(ctx context.Context, in *pb.ListProductsReq
 		}, err
 	}
 	if !succ {
-		s.logger.Warn("Retrieval of all products failed")
+		s.logger.Warn("No products found")
 		return &pb.ListProductsResponse{
 			Success:      false,
 			Products:     nil,
-			ErrorMessage: "Retrieval of all products failed",
+			ErrorMessage: "No products found",
 		}, nil
 	}
 

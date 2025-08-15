@@ -169,7 +169,7 @@ func (s *AuthServer) UpdateUser(ctx context.Context, in *pb.UpdateUserRequest) (
 		}, status.Error(codes.InvalidArgument, "Invalid email format")
 	}
 
-	if in.Email != "" && !isValidPhone(in.Phone) {
+	if in.Phone != "" && !isValidPhone(in.Phone) {
 		s.logger.Warn("Invalid phone number in update user request: %s", in.Phone)
 		return &pb.UpdateUserResponse{
 			Success:      false,
@@ -247,11 +247,11 @@ func (s *AuthServer) GetUsers(ctx context.Context, in *pb.GetUsersRequest) (*pb.
 		}, err
 	}
 	if !succ {
-		s.logger.Warn("Retrieval of all users failed")
+		s.logger.Warn("No users found")
 		return &pb.GetUsersResponse{
 			Success:      false,
 			Users:        nil,
-			ErrorMessage: "Retrieval of all users failed",
+			ErrorMessage: "No users found",
 		}, nil
 	}
 

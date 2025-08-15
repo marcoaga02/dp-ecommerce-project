@@ -37,7 +37,7 @@ func main() {
 
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
-		myLogger.Fatal("Failed to listen on prot %s: %v", port, err)
+		myLogger.Fatal("Failed to listen on port %s: %v", port, err)
 	}
 
 	gormProdRepo := repository.NewGormProductRepository(db, logger.NewStdLogger(logLevel, "product-service/db"))

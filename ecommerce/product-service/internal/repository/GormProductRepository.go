@@ -16,35 +16,6 @@ type GormProductRepository struct {
 	logger logger.Logger
 }
 
-// Constants representing sizes in the database
-const (
-	Size_XS  = 1
-	Size_S   = 2
-	Size_M   = 3
-	Size_L   = 4
-	Size_XL  = 5
-	Size_XXL = 6
-)
-
-// sizeMapDb2Enum maps integer size values from the database to protobuf enum values.
-var sizeMapDb2Enum = map[int]pb.Size{
-	Size_XS:  pb.Size_XS,
-	Size_S:   pb.Size_S,
-	Size_M:   pb.Size_M,
-	Size_L:   pb.Size_L,
-	Size_XL:  pb.Size_XL,
-	Size_XXL: pb.Size_XXL,
-}
-
-var sizeMapEnum2Db = map[pb.Size]int{
-	pb.Size_XS:  Size_XS,
-	pb.Size_S:   Size_S,
-	pb.Size_M:   Size_M,
-	pb.Size_L:   Size_L,
-	pb.Size_XL:  Size_XL,
-	pb.Size_XXL: Size_XXL,
-}
-
 // NewGormProductRepository creates a new instance of GormProductRepository
 func NewGormProductRepository(db *gorm.DB, logger logger.Logger) *GormProductRepository {
 	return &GormProductRepository{
@@ -69,10 +40,10 @@ func (r *GormProductRepository) CreateProduct(prod *pb.Product) (bool, error) {
 		return false, err
 	}
 
-	sizeID, err := r.mapSizeToDB(prod.Size)
-	if err != nil {
-		r.logger.Error("Error while retrieving the product size: %v", err)
-		return false, err
+	sizeID := model.ProtoSizeToModelSize(prod.Size)
+	if sizeID == model.SizeUnspecified {
+		r.logger.Error("Invalid size for product with code '%s'", prod.Code)
+		return false, fmt.Errorf("Invalid size spectified")
 	}
 
 	newProd := model.Product{
@@ -106,7 +77,7 @@ func (r *GormProductRepository) GetProduct(code string) (bool, *pb.Product, erro
 		return false, nil, err
 	}
 
-	prod, err := r.getProtoBufProdFromModel(prodModel)
+	prod, err := model.ModelProductToProtoProduct(prodModel)
 	if err != nil {
 		r.logger.Error("Failed to convert product model into protobul product: %v", err)
 		return false, nil, err
@@ -129,33 +100,28 @@ func (r *GormProductRepository) UpdateProduct(code string, prod *pb.Product) (bo
 	}
 
 	updates := map[string]interface{}{}
+
+	updates["stock"] = prod.Stock
+
 	if prod.Name != "" {
 		updates["name"] = prod.Name
 	}
-	if prod.Size != pb.Size_UNSPECIFIED {
-		sizeID, err := r.mapSizeToDB(prod.Size)
-		if err != nil {
-			r.logger.Error("Error while retrieving the product size: %v", err)
-			return false, err
-		}
+
+	sizeID := model.ProtoSizeToModelSize(prod.Size)
+	if sizeID != model.SizeUnspecified {
 		updates["size_id"] = sizeID
 	}
+	
 	if prod.Color != "" {
 		updates["color"] = prod.Color
 	}
+
 	if prod.Description != "" {
 		updates["description"] = prod.Description
 	}
-	if prod.Stock >= 0 {
-		updates["stock"] = prod.Stock
-	}
+
 	if prod.Price >= 0 {
 		updates["price"] = prod.Price
-	}
-
-	if len(updates) == 0 {
-		r.logger.Info("No updates required for product with code '%s'", code)
-		return true, nil
 	}
 
 	err = r.db.Model(&model.Product{}).
@@ -199,15 +165,19 @@ func (r *GormProductRepository) ListProducts() (bool, []*pb.Product, error) {
 	var prodModels []model.Product
 	err := r.db.Preload("Size").Find(&prodModels).Error
 	if err != nil {
-		r.logger.Error("Failed to retrieve all products: %v", err)
+		r.logger.Error("Error while retrieving all products: %v", err)
 		return false, nil, err
+	}
+	if len(prodModels) == 0 {
+		r.logger.Warn("No products found")
+		return false, nil, nil
 	}
 
 	var products []*pb.Product
 	for _, prodModel := range prodModels {
-		prodPb, err := r.getProtoBufProdFromModel(&prodModel)
+		prodPb, err := model.ModelProductToProtoProduct(&prodModel)
 		if err != nil {
-			r.logger.Warn("Skipping products with code '%s' due tu invalid size mapping: %v", prodModel.Code, err)
+			r.logger.Warn("Skipping products with code '%s' due to invalid size mapping: %v", prodModel.Code, err)
 			continue
 		}
 		products = append(products, prodPb)
@@ -215,24 +185,6 @@ func (r *GormProductRepository) ListProducts() (bool, []*pb.Product, error) {
 
 	r.logger.Info("Retrieved all products successfully")
 	return true, products, nil
-}
-
-// mapSizeFromDB converts DB size ID to protobuf size.
-func (r *GormProductRepository) mapSizeFromDB(sizeID int) (pb.Size, error) {
-	size, ok := sizeMapDb2Enum[sizeID]
-	if !ok {
-		return pb.Size_UNSPECIFIED, fmt.Errorf("Invalid size id '%d'", sizeID)
-	}
-	return size, nil
-}
-
-// mapSizeToDB converts protobuf size to DB size ID.
-func (r *GormProductRepository) mapSizeToDB(size pb.Size) (int, error) {
-	sizeID, ok := sizeMapEnum2Db[size]
-	if !ok {
-		return 0, fmt.Errorf("Invalid protobuf size '%v'", size)
-	}
-	return sizeID, nil
 }
 
 // getProdByCode returns the product from the database, given its code
@@ -249,24 +201,6 @@ func (r *GormProductRepository) getProdByCode(code string) (*model.Product, erro
 	return &prod, nil
 }
 
-// getProtoBufProdFromModel converts product model to protobuf product.
-func (r *GormProductRepository) getProtoBufProdFromModel(prodModel *model.Product) (*pb.Product, error) {
-	size, err := r.mapSizeFromDB(prodModel.SizeID)
-	if err != nil {
-		return nil, err
-	}
-
-	return &pb.Product{
-		Code:        prodModel.Code,
-		Name:        prodModel.Name,
-		Size:        size,
-		Color:       prodModel.Color,
-		Description: prodModel.Description,
-		Stock:       prodModel.Stock,
-		Price:       prodModel.Price,
-	}, nil
-}
-
 func (r *GormProductRepository) CreateDefaultProducts() error {
 	type DefaultProduct struct {
 		Code        string
@@ -274,7 +208,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 		Size        pb.Size
 		Color       string
 		Description string
-		Stock       int32
+		Stock       uint32
 		Price       float64
 	}
 	defaultProducts := []DefaultProduct{

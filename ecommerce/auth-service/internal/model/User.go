@@ -1,5 +1,11 @@
 package model
 
+import (
+	"fmt"
+
+	pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/auth"
+)
+
 // User represents a user account in the system.
 //
 // Fields:
@@ -16,4 +22,23 @@ type User struct {
 	Phone        string `gorm:"column:phone;type:varchar(20);not null"`
 	RoleID       int    `gorm:"column:role_id;not null;default:1"` // foreign key
 	Role         Role   `gorm:"foreignKey:RoleID"`                 // GORM relationship
+}
+
+// ModelUserToProtoUser converts a model.User into a pb.User
+func ModelUserToProtoUser(user *User) (*pb.User, error) {
+	if user == nil {
+		return nil, fmt.Errorf("Input argument is nil")
+	}
+	
+	role := ModelRoleToProtoRole(user.RoleID)
+	if role == RoleUnspecified {
+		return nil, fmt.Errorf("Invalid user role id '%d'", user.RoleID)
+	}
+
+	return &pb.User{
+		Username: user.Username,
+		Email:    user.Email,
+		Phone:    user.Phone,
+		Role:     role,
+	}, nil
 }
