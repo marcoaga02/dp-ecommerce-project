@@ -8,7 +8,7 @@ type Product struct {
 	Size        Size
 	Color       string
 	Description string
-	Stock       int32
+	Stock       uint32
 	Price       float64
 }
 
@@ -45,7 +45,7 @@ func ModelProductToProtoProduct(prod *Product) *pb.Product {
 }
 
 // ProtoProductToModelProductsList converts a []*pb.Product into a []*model.Product
-func ProtoProductToModelProductsList(prods []*pb.Product) []*Product {
+func ProtoProductsListToModelProductsList(prods []*pb.Product) []*Product {
 	if prods == nil {
 		return nil
 	}

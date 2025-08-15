@@ -10,7 +10,7 @@ import (
 type ServiceOrchestrator struct {
 	authClient    interfaces.AuthClientInterface
 	productClient interfaces.ProductClientInterface
-	// cartClient clients.cartClient
+	cartClient    interfaces.CartClientInterface
 	// orderClient clients.orderClient
 
 	logger logger.Logger
@@ -19,12 +19,13 @@ type ServiceOrchestrator struct {
 // NewServiceOrchestrator creates an instance of the struct ServiceOrchestrator
 func NewServiceOrchestrator(authClient interfaces.AuthClientInterface,
 	productClient interfaces.ProductClientInterface,
+	cartClient interfaces.CartClientInterface,
 	log logger.Logger) *ServiceOrchestrator {
 
 	return &ServiceOrchestrator{
 		authClient:    authClient,
 		productClient: productClient,
-		// cartClient: cartClient
+		cartClient:    cartClient,
 		// orderClient: orderClient
 
 		logger: log,
@@ -84,7 +85,7 @@ func (so *ServiceOrchestrator) ChangePassword(username, oldPassword, newPassword
 	return true, nil
 }
 
-// UpdateUser attemps to update email, phone and / or role of the user associated to the username
+// UpdateUser attempts to update email, phone and / or role of the user associated to the username
 func (so *ServiceOrchestrator) UpdateUser(username, email, phone string, role model.Role) (bool, error) {
 	succ, err := so.authClient.UpdateUser(username, email, phone, model.ModelRoleToProtoRole(role))
 	if err != nil {
@@ -139,8 +140,8 @@ func (so *ServiceOrchestrator) GetUsers() (bool, []*model.User, error) {
 		so.logger.Error("Retrieval error of all users: %v", err)
 		return false, nil, err
 	}
-	if !succ {
-		so.logger.Warn("Retrieval of all users failed")
+	if !succ || users == nil || len(users) == 0 {
+		so.logger.Warn("No users returned")
 		return false, nil, nil
 	}
 
@@ -152,8 +153,8 @@ func (so *ServiceOrchestrator) GetUsers() (bool, []*model.User, error) {
 * PRODUCT SECTION
  */
 
-// CreateProduct attemps to create a new product with the given input characteristics
-func (so *ServiceOrchestrator) CreateProduct(code, name string, size model.Size, color, description string, stock int32, price float64) (bool, error) {
+// CreateProduct attempts to create a new product with the given input characteristics
+func (so *ServiceOrchestrator) CreateProduct(code, name string, size model.Size, color, description string, stock uint32, price float64) (bool, error) {
 	succ, err := so.productClient.CreateProduct(code, name, model.ModelSizeToProtoSize(size), color, description, stock, price)
 	if err != nil {
 		so.logger.Error("Creation error for product with code '%s': %v", code, err)
@@ -184,8 +185,8 @@ func (so *ServiceOrchestrator) GetProduct(code string) (bool, *model.Product, er
 	return true, model.ProtoProductToModelProduct(prod), nil
 }
 
-// UpdateProduct attemps to update name, size, color, description, stock and / or price of the product related to the given code
-func (so *ServiceOrchestrator) UpdateProduct(code, name string, size model.Size, color, description string, stock int32, price float64) (bool, error) {
+// UpdateProduct attempts to update name, size, color, description, stock and / or price of the product related to the given code
+func (so *ServiceOrchestrator) UpdateProduct(code, name string, size model.Size, color, description string, stock uint32, price float64) (bool, error) {
 	succ, err := so.productClient.UpdateProduct(code, name, model.ModelSizeToProtoSize(size), color, description, stock, price)
 	if err != nil {
 		so.logger.Error("Update error for product with code '%s': %v", code, err)
@@ -200,7 +201,7 @@ func (so *ServiceOrchestrator) UpdateProduct(code, name string, size model.Size,
 	return true, nil
 }
 
-// DeleteProduct attemps to delete the product with the given code
+// DeleteProduct attempts to delete the product with the given code
 func (so *ServiceOrchestrator) DeleteProduct(code string) (bool, error) {
 	succ, err := so.productClient.DeleteProduct(code)
 	if err != nil {
@@ -223,11 +224,95 @@ func (so *ServiceOrchestrator) GetProductLists() (bool, []*model.Product, error)
 		so.logger.Error("Retrieval error of all products: %v", err)
 		return false, nil, err
 	}
-	if !succ {
-		so.logger.Warn("Retrieval of all products failed")
+	if !succ || prods == nil || len(prods) == 0 {
+		so.logger.Warn("No products returned")
 		return false, nil, nil
 	}
 
 	so.logger.Info("Successful retrieval of all products")
-	return true, model.ProtoProductToModelProductsList(prods), nil
+	return true, model.ProtoProductsListToModelProductsList(prods), nil
+}
+
+/*
+* CART SECTION
+ */
+
+// AddProductToCart attempts to add a certain quantity of a product to a user's cart
+func (so *ServiceOrchestrator) AddProductToCart(username, prodCode string, quantity uint32) (bool, error) {
+	succ, err := so.cartClient.AddItem(username, prodCode, quantity)
+	if err != nil {
+		so.logger.Error("Error while adding product '%s' to the cart of user '%s': %v", prodCode, username, err)
+		return false, err
+	}
+	if !succ {
+		so.logger.Warn("Failed addition of product '%s' to the cart of user '%s'", prodCode, username)
+		return false, nil
+	}
+
+	so.logger.Info("Successful addition of n=%d products '%s' to the cart of user '%s'", quantity, prodCode, username)
+	return true, nil
+}
+
+// RemoveProductFromCart attempts to fully remove a product from a user's cart
+func (so *ServiceOrchestrator) RemoveProductFromCart(username, prodCode string) (bool, error) {
+	succ, err := so.cartClient.RemoveItem(username, prodCode)
+	if err != nil {
+		so.logger.Error("Error while removing product '%s' form the cart of user '%s': %v", prodCode, username, err)
+		return false, err
+	}
+	if !succ {
+		so.logger.Warn("Failed removal of product '%s' from the cart of user '%s'", prodCode, username)
+		return false, nil
+	}
+
+	so.logger.Info("Successful removal of product '%s' from the cart of user '%s'", prodCode, username)
+	return true, nil
+}
+
+// UpdateQuantityOfProductIntoCart attempts to update the quantity of a product into the user's cart
+func (so *ServiceOrchestrator) UpdateQuantityOfProductIntoCart(username, prodCode string, quantity uint32) (bool, error) {
+	succ, err := so.cartClient.UpdateItemQuantity(username, prodCode, quantity)
+	if err != nil {
+		so.logger.Error("Error while updating quantity of product '%s' into the cart of user '%s': %v", prodCode, username, err)
+		return false, err
+	}
+	if !succ {
+		so.logger.Warn("Failed update of quantity for product '%s' into the cart of user '%s'", prodCode, username)
+		return false, nil
+	}
+
+	so.logger.Info("Successful update at n=%d of the quantity for product '%s' into the cart of user '%s'", quantity, prodCode, username)
+	return true, nil
+}
+
+// GetListProductsIntoCart attempts to retrieves the list of all products, with their quantities, from the cart of a user
+func (so *ServiceOrchestrator) GetListOfProductsIntoCart(username string) (bool, []*model.CartItem, error) {
+	succ, items, err := so.cartClient.ListCartItems(username)
+	if err != nil {
+		so.logger.Error("Error while retrieving products into the cart of user '%s': %v", username, err)
+		return false, nil, nil
+	}
+	if !succ || items == nil || len(items) == 0 {
+		so.logger.Warn("No cart items returned for user '%s'", username)
+		return false, nil, nil
+	}
+
+	so.logger.Info("Successful retrieval of products from cart of user '%s'", username)
+	return true, model.ProtoCartItemsListToModelCartItemsList(items), nil
+}
+
+// RemoveAllProductsFromCart attempts to remova all the products from the cart of a user
+func (so *ServiceOrchestrator) RemoveAllProductsFromCart(username string) (bool, error) {
+	succ, err := so.cartClient.ClearCart(username)
+	if err != nil {
+		so.logger.Error("Error while removing all product from the cart of user '%s': %v", username, err)
+		return false, err
+	}
+	if !succ {
+		so.logger.Warn("Failed removal of all products from cart of user '%s'", username)
+		return false, nil
+	}
+
+	so.logger.Info("Successful removal of all products from cart of user '%s'", username)
+	return true, nil
 }

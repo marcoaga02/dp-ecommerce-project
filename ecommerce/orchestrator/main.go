@@ -23,7 +23,7 @@ func main() {
 	addresses := map[string]string{
 		"auth":    fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "AUTH_NAME"), grpcPort),
 		"product": fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "PRODUCT_NAME"), grpcPort),
-		//"cart": fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "CART_NAME"), grpcPort),
+		"cart": fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "CART_NAME"), grpcPort),
 		//"order": fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "ORDER_NAME"), grpcPort),
 	}
 
@@ -33,7 +33,8 @@ func main() {
 
 	authClient := clients.NewAuthClient("auth", serviceManager, logger.NewStdLogger(logLevel, "auth-client"), 1*time.Second)
 	prodClient := clients.NewProductClient("product", serviceManager, logger.NewStdLogger(logLevel, "product-client"), 1*time.Second)
-	srv_orch := orchestrator.NewServiceOrchestrator(authClient, prodClient, logger.NewStdLogger(logLevel, "service-orchestrator"))
+	cartClient := clients.NewCartClient("cart", serviceManager, logger.NewStdLogger(logLevel, "cart-client"), 1*time.Second)
+	srv_orch := orchestrator.NewServiceOrchestrator(authClient, prodClient, cartClient, logger.NewStdLogger(logLevel, "service-orchestrator"))
 
 	sessionSecret := GetEnvOrFatal(myLogger, "SESSION_SECRET")
 	router := gin.Default()
@@ -94,6 +95,15 @@ func main() {
 				product.POST("/:code/edit", webServer.EditProductPostHandler)
 				product.POST("/:code/delete", webServer.DeleteProductHandler)
 			}
+		}
+
+		cart := app.Group("/cart")
+		{
+			cart.GET("/", webServer.ListCartItemsGetHandler)
+			cart.POST("/items", webServer.AddItemToCartPostHandler)
+
+			cart.POST("/:code/update", webServer.UpdateQuantityItemIntoCartPostHandler)
+			cart.POST("/:code/delete", webServer.RemoveItemFromCartPostHandler)
 		}
 	}
 

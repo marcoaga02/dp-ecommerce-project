@@ -31,7 +31,7 @@ func NewProductClient(serviceName string, sm *manager.ServiceManager, log logger
 }
 
 // CreateProduct creates a new product.
-func (c *ProductClient) CreateProduct(code, name string, size pb.Size, color, description string, stock int32, price float64) (bool, error) {
+func (c *ProductClient) CreateProduct(code, name string, size pb.Size, color, description string, stock uint32, price float64) (bool, error) {
 	if code == "" || name == "" || color == "" || description == "" {
 		c.logger.Warn("Code, name, color or description empty in create product request")
 		return false, fmt.Errorf("Code, name, color and description must be provided and not empty")
@@ -130,7 +130,7 @@ func (c *ProductClient) GetProduct(code string) (bool, *pb.Product, error) {
 }
 
 // UpdateProduct updates the product related to the given code.
-func (c *ProductClient) UpdateProduct(code, name string, size pb.Size, color, description string, stock int32, price float64) (bool, error) {
+func (c *ProductClient) UpdateProduct(code, name string, size pb.Size, color, description string, stock uint32, price float64) (bool, error) {
 	if code == "" {
 		c.logger.Error("Code empty in create product request")
 		return false, fmt.Errorf("Code must be provided and not empty")
