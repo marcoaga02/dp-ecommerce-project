@@ -1,0 +1,195 @@
+{{template "header.html" .}}
+<style>
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .center-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .quantity-input {
+        width: 60px;
+        text-align: center;
+        background: #e9ecef;
+        border: 1px solid #dee2e6;
+    }
+
+    .quantity-input:not([readonly]) {
+        background: white;
+        border-color: #007bff;
+    }
+
+    .modify-btn {
+        background: #007bff;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        margin: 0 2px;
+    }
+
+    .save-btn {
+        background: #28a745;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        margin: 0 2px;
+    }
+
+    .cancel-btn {
+        background: #6c757d;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        margin: 0 2px;
+    }
+
+    .remove-btn {
+        background: #dc3545;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        margin: 0 2px;
+    }
+
+    .back-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        background: #007bff;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .stock-available {
+        color: green;
+    }
+
+    .stock-out {
+        color: red;
+    }
+
+    .modify-btn:hover {
+        background: #024d9c;
+    }
+
+    .save-btn:hover {
+        background: green;
+    }
+
+    .cancel-btn:hover {
+        background: #545b62;
+    }
+
+    .remove-btn:hover {
+        background: #9c2632;
+    }
+
+    .back-btn:hover {
+        background: #024d9c;
+    }
+
+    .cart-total {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        text-align: right;
+        font-size: 18px;
+        font-weight: bold;
+    }
+</style>
+
+<h2>Shopping Cart</h2>
+<table border="1" cellpadding="5" cellspacing="0" class="products-table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th class="center-cell">Price</th>
+            <th class="center-cell">Quantity</th>
+            <th class="center-cell">Subtotal</th>
+            <th class="center-cell">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .CartItems}}
+        <tr>
+            <td>
+                <a href="/app/product/{{.Code}}" class="product-link">{{.Name}}</a>
+            </td>
+            <td class="center-cell">{{.Price}} €</td>
+            <td class="center-cell">
+                <form id="updateForm-{{.Code}}" method="POST" action="/app/cart/{{.Code}}/update">
+                    <input type="number" name="quantity" min="0" max="{{.Stock}}" value="{{.Quantity}}"
+                        class="quantity-input" readonly data-original="{{.Quantity}}">
+                </form>
+            </td>
+            <td class="center-cell">{{printf "%.2f" .TotalPrice}} €</td>
+            <td class="center-cell">
+                <button type="button" class="modify-btn" onclick="enableEdit(this)">Modify</button>
+                <button type="submit" form="updateForm-{{.Code}}" class="save-btn" style="display:none;">Save</button>
+                <button type="button" class="cancel-btn" style="display:none;"
+                    onclick="cancelEdit(this)">Cancel</button>
+                <form method="POST" action="/app/cart/{{.Code}}/delete" style="display: inline;">
+                    <input type="hidden" name="code" value="{{.Code}}">
+                    <button type="submit" class="remove-btn"
+                        onclick="return confirm('Remove this item from cart?')">Remove</button>
+                </form>
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+
+<div class="cart-total">
+    Total: {{printf "%.2f" .Total}} €
+</div>
+
+<script>
+    function enableEdit(modifyBtn) {
+        const row = modifyBtn.closest('tr');
+        const quantityInput = row.querySelector('.quantity-input');
+        const saveBtn = row.querySelector('.save-btn');
+        const cancelBtn = row.querySelector('.cancel-btn');
+
+        quantityInput.removeAttribute('readonly');
+        quantityInput.focus();
+
+        modifyBtn.style.display = 'none';
+        saveBtn.style.display = 'inline';
+        cancelBtn.style.display = 'inline';
+    }
+
+    function cancelEdit(cancelBtn) {
+        const row = cancelBtn.closest('tr');
+        const quantityInput = row.querySelector('.quantity-input');
+        const modifyBtn = row.querySelector('.modify-btn');
+        const saveBtn = row.querySelector('.save-btn');
+
+        quantityInput.value = quantityInput.dataset.original;
+        quantityInput.setAttribute('readonly', true);
+
+        modifyBtn.style.display = 'inline';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+    }
+</script>
+
+<p>
+    <a href="/app/product/" class="back-btn">Back to Products</a>
+</p>
+{{template "footer.html" .}}

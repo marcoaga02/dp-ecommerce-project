@@ -86,7 +86,7 @@
             </td>
             <td class="center-cell">{{.Price}} €</td>
             <td class="center-cell">
-                <form action="/app/cart/add" method="POST"
+                <form action="/app/cart/items" method="POST"
                     style="display: flex; justify-content: center; align-items: center;">
                     <input type="hidden" name="code" value="{{.Code}}">
                     <input type="number" name="quantity" min="1" max="{{.Stock}}" value="1" class="quantity-input" {{if
