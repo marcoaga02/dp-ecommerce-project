@@ -123,7 +123,7 @@ func (s *CartServer) UpdateItemQuantity(ctx context.Context, in *pb.UpdateItemQu
 		}, nil
 	}
 
-	s.logger.Info("Quantity of products with code'%s' in the cart of the user '%s' successfully updated", in.ProductCode, in.Username)
+	s.logger.Info("Quantity of products with code '%s' in the cart of the user '%s' successfully updated", in.ProductCode, in.Username)
 	return &pb.UpdateItemQuantityResponse{
 		Success: true,
 	}, nil

@@ -92,7 +92,7 @@ func (r *GormCartRepository) UpdateItemQuantity(username, prodCode string, quant
 		Update("quantity", quantity)
 
 	if res.Error != nil {
-		r.logger.Error("Error while updating quantity for pruduct '%s' of user '%s' cart: %v", prodCode, username, res.Error)
+		r.logger.Error("Error while updating quantity for prouduct '%s' of user '%s' cart: %v", prodCode, username, res.Error)
 		return false, res.Error
 	}
 	if res.RowsAffected == 0 {
