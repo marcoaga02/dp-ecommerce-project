@@ -101,6 +101,7 @@ func main() {
 		{
 			cart.GET("/", webServer.ListCartItemsGetHandler)
 			cart.POST("/items", webServer.AddItemToCartPostHandler)
+			cart.POST("/clear", webServer.ClearCartPostHandler)
 
 			cart.POST("/:code/update", webServer.UpdateQuantityItemIntoCartPostHandler)
 			cart.POST("/:code/delete", webServer.RemoveItemFromCartPostHandler)

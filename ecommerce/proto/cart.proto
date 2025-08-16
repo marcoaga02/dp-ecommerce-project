@@ -81,6 +81,16 @@ message ClearCartResponse {
   string error_message = 2;
 }
 
+// REMOVE PRODUCT FROM ALL CARTS
+message RemoveProductFromAllCartsRequest {
+  string product_code = 1; // codice del prodotto da rimuovere
+}
+
+message RemoveProductFromAllCartsResponse {
+  bool success = 1;
+  string error_message = 2;
+}
+
 
 // SERVICES
 service CartService {
@@ -89,4 +99,5 @@ service CartService {
   rpc UpdateItemQuantity(UpdateItemQuantityRequest) returns (UpdateItemQuantityResponse);
   rpc ListCartItems(ListCartItemsRequest) returns (ListCartItemsResponse);
   rpc ClearCart(ClearCartRequest) returns (ClearCartResponse);
+  rpc RemoveProductFromAllCarts(RemoveProductFromAllCartsRequest) returns (RemoveProductFromAllCartsResponse);
 }

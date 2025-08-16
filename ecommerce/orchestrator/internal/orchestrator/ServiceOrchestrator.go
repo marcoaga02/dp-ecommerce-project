@@ -316,3 +316,40 @@ func (so *ServiceOrchestrator) RemoveAllProductsFromCart(username string) (bool,
 	so.logger.Info("Successful removal of all products from cart of user '%s'", username)
 	return true, nil
 }
+
+// RemoveProductFromAllCarts removes all cart items related to a given product
+func (so *ServiceOrchestrator) RemoveProductFromAllCarts(code string) (bool, error) {
+	succ, err := so.cartClient.RemoveProductFromAllCarts(code)
+	if err != nil {
+		so.logger.Error("Error while removing all cart items for product with code '%s': %v", code, err)
+		return false, err
+	}
+	if !succ {
+		so.logger.Warn("Failed removal of all cart items for product with code '%s'", code)
+		return false, nil
+	}
+
+	so.logger.Info("Successful removal of all cart items for product with code '%s'", code)
+	return true, nil
+}
+
+// GetProductFromCart retrieves a product from the cart of a user
+func (so *ServiceOrchestrator) GetProductFromCart(username, code string) (bool, *model.CartItem, error) {
+	succ, items, err := so.GetListOfProductsIntoCart(username)
+	if err != nil { // error already logged in the other orchestrator function
+		return false, nil, err
+	}
+	if !succ { // warning already logged in the other orchestrator function
+		return false, nil, nil
+	}
+
+	for _, item := range items {
+		if item.ProdCode == code {
+			so.logger.Info("Product with code '%s' found into the cart of user '%s'", code, username)
+			return true, item, nil
+		}
+	}
+
+	so.logger.Error("Product with code '%s' not found into the cart of user '%s'", code, username)
+	return false, nil, nil
+}

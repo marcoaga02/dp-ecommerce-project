@@ -65,6 +65,7 @@
             <th class="center-cell">Color</th>
             <th>Description</th>
             <th class="center-cell">Availability</th>
+            <th class="center-cell">In Cart</th>
             <th class="center-cell">Price</th>
             <th class="center-cell">Quantity</th>
             <th class="center-cell">Add to Cart</th>
@@ -84,16 +85,17 @@
                 <span class="stock-out">Out of stock</span>
                 {{end}}
             </td>
+            <td class="center-cell">{{.NumberInCart}}</td>
             <td class="center-cell">{{.Price}} €</td>
             <td class="center-cell">
                 <form action="/app/cart/items" method="POST"
                     style="display: flex; justify-content: center; align-items: center;">
                     <input type="hidden" name="code" value="{{.Code}}">
-                    <input type="number" name="quantity" min="1" max="{{.Stock}}" value="1" class="quantity-input" {{if
-                        eq .Stock 0}}disabled{{end}}>
+                    <input type="number" name="quantity" min="0" max="{{.Available}}" value="1"
+                        class="quantity-input" {{if eq .Stock 1}}disabled{{end}}>
             </td>
             <td class="center-cell">
-                <button type="submit" class="add-cart-btn" {{if eq .Stock 0}}disabled{{end}}>Add to Cart</button>
+                <button type="submit" class="add-cart-btn" {{if eq .Available 0}}disabled{{end}}>Add to Cart</button>
                 </form>
             </td>
         </tr>

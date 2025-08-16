@@ -74,6 +74,30 @@
         text-align: center;
     }
 
+    .clear-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        background: #dc3545;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .order-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        background: #28a745;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        text-align: center;
+    }
+
     .stock-available {
         color: green;
     }
@@ -102,6 +126,14 @@
         background: #024d9c;
     }
 
+    .clear-btn:hover {
+        background: #9c2632;
+    }
+
+    .order-btn:hover {
+        background: green;
+    }
+
     .cart-total {
         margin-top: 20px;
         padding: 15px;
@@ -115,6 +147,7 @@
 </style>
 
 <h2>Shopping Cart</h2>
+{{if gt .ItemsNumber 0}}
 <table border="1" cellpadding="5" cellspacing="0" class="products-table">
     <thead>
         <tr>
@@ -128,9 +161,7 @@
     <tbody>
         {{range .CartItems}}
         <tr>
-            <td>
-                <a href="/app/product/{{.Code}}" class="product-link">{{.Name}}</a>
-            </td>
+            <td><a href="/app/product/{{.Code}}" class="product-link">{{.Name}}</a></td>
             <td class="center-cell">{{.Price}} €</td>
             <td class="center-cell">
                 <form id="updateForm-{{.Code}}" method="POST" action="/app/cart/{{.Code}}/update">
@@ -158,6 +189,27 @@
 <div class="cart-total">
     Total: {{printf "%.2f" .Total}} €
 </div>
+
+<div style="margin-top: 15px; text-align: right;">
+    <form method="POST" action="/app/cart/clear" style="display:inline;">
+        <button type="submit" class="clear-btn" onclick="return confirm('Are you sure you want to clear the cart?')">
+            Clear Cart
+        </button>
+    </form>
+
+    <form method="GET" action="/app/checkout" style="display:inline; margin-left:10px;">
+        <button type="submit" class="order-btn">
+            Continue with your order
+        </button>
+    </form>
+</div>
+{{else}}
+<p>Your cart is empty.</p>
+{{end}}
+
+<p>
+    <a href="/app/product/" class="back-btn">Back to Products</a>
+</p>
 
 <script>
     function enableEdit(modifyBtn) {
@@ -188,8 +240,4 @@
         cancelBtn.style.display = 'none';
     }
 </script>
-
-<p>
-    <a href="/app/product/" class="back-btn">Back to Products</a>
-</p>
 {{template "footer.html" .}}

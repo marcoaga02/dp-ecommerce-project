@@ -17,4 +17,7 @@ type CartServiceInterface interface {
 
 	// ClearCart removes all products from the specified user's cart
 	ClearCart(username string) (bool, error)
+
+	// RemoveProductFromAllCarts removes all cart items related to a given product
+	RemoveProductFromAllCarts(prodCode string) (bool, error)
 }

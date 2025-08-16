@@ -183,7 +183,7 @@ func (s *CartServer) ClearCart(ctx context.Context, in *pb.ClearCartRequest) (*p
 		}, err
 	}
 	if !succ {
-		s.logger.Error("Failed removal of all products from the cart of the user '%s'", in.Username)
+		s.logger.Warn("Failed removal of all products from the cart of the user '%s'", in.Username)
 		return &pb.ClearCartResponse{
 			Success: false,
 			ErrorMessage: "User's cart already empty",
@@ -196,3 +196,33 @@ func (s *CartServer) ClearCart(ctx context.Context, in *pb.ClearCartRequest) (*p
 	}, nil
 }
 
+func(s *CartServer) RemoveProductFromAllCarts(ctx context.Context, in *pb.RemoveProductFromAllCartsRequest) (*pb.RemoveProductFromAllCartsResponse, error) {
+	if in.ProductCode == "" {
+		s.logger.Warn("Product code empty in remove product from all carts request")
+		return &pb.RemoveProductFromAllCartsResponse{
+			Success:      false,
+			ErrorMessage: "Product code must be provided and not empty",
+		}, status.Error(codes.InvalidArgument, "Product code must be provided and not empty")
+	}
+
+	succ, err := s.db.RemoveProductFromAllCarts(in.ProductCode)
+	if err != nil {
+		s.logger.Error("Internal error while removing the product with code '%s' from all carts: %v", in.ProductCode, err)
+		return &pb.RemoveProductFromAllCartsResponse{
+			Success: false,
+			ErrorMessage: "Internal server error while removing the product from all carts",
+		}, err
+	}
+	if !succ {
+		s.logger.Warn("Failed removal of the product with code '%s' from all carts", in.ProductCode)
+		return &pb.RemoveProductFromAllCartsResponse{
+			Success: false,
+			ErrorMessage: "No carts found containing the product",
+		}, nil
+	}
+
+	s.logger.Info("Suceìcessful removal of product with code '%s' from all carts", in.ProductCode)
+	return &pb.RemoveProductFromAllCartsResponse{
+		Success: true,
+	}, nil
+}

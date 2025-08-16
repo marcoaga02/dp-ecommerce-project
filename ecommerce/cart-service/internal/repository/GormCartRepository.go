@@ -146,3 +146,21 @@ func (r *GormCartRepository) ClearCart(username string) (bool, error) {
 	r.logger.Info("Cleared cart for user '%s'", username)
 	return true, nil
 }
+
+func (r *GormCartRepository) RemoveProductFromAllCarts(prodCode string) (bool, error) {
+	res := r.db.
+		Where("code = ?", prodCode).
+		Delete(&model.CartItem{})
+
+	if res.Error != nil {
+		r.logger.Error("Error removing product with code '%s' from all carts: %v", prodCode, res.Error)
+		return false, res.Error
+	}
+	if res.RowsAffected == 0 {
+		r.logger.Warn("No items found in cart for product with code '%s'", prodCode)
+		return false, nil
+	}
+
+	r.logger.Info("Removed all items related to product with code '%s'", prodCode)
+	return true, nil
+}

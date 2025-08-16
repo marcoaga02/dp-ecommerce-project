@@ -230,6 +230,43 @@ func (c *CartClient) ClearCart(username string) (bool, error) {
 	return true, nil
 }
 
+func (c *CartClient) RemoveProductFromAllCarts(prodCode string) (bool, error) {
+	if prodCode == "" {
+		c.logger.Warn("Product code empty in remove product from all carts request")
+		return false, fmt.Errorf("Product code must be provided and not empty")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
+	defer cancel()
+
+	client, err := c.getClient()
+	if err != nil {
+		c.logger.Error("Failed to get connection to service '%s': %v", c.serviceName, err)
+		return false, err
+	}
+
+	req := &pb.RemoveProductFromAllCartsRequest{
+		ProductCode: prodCode,
+	}
+
+	res, err := client.RemoveProductFromAllCarts(ctx, req)
+	if err != nil {
+		c.logger.Error("Error while removing product with code '%s' from all carts: %v", prodCode, err)
+		return false, err
+	}
+	if res == nil {
+		c.logger.Error("Received nil response without error while removing product with code '%s' from all carts", prodCode)
+		return false, fmt.Errorf("Product removal from carts failed: received nil response without error")
+	}
+	if !res.GetSuccess() {
+		c.logger.Warn("Failed removal of all cart items for product with code '%s': %s", prodCode, res.GetErrorMessage())
+		return false, nil
+	}
+
+	c.logger.Info("Successful removal of all cart items for product with code '%s'", prodCode)
+	return true, nil
+}
+
 // getClient retrieves a new CartServiceClient connected to the service.
 //
 // Returns:
