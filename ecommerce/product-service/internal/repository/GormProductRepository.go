@@ -79,7 +79,7 @@ func (r *GormProductRepository) GetProduct(code string) (bool, *pb.Product, erro
 
 	prod, err := model.ModelProductToProtoProduct(prodModel)
 	if err != nil {
-		r.logger.Error("Failed to convert product model into protobul product: %v", err)
+		r.logger.Error("Failed to convert model product into protobuf product: %v", err)
 		return false, nil, err
 	}
 
