@@ -1,0 +1,59 @@
+{{template "header.html" .}}
+<style>
+    .order-details {
+        margin-bottom: 20px;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .center-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+
+<h2>Order Details</h2>
+
+<div class="order-details">
+    <p><strong>Order ID:</strong> {{.Order.OrderId}}</p>
+    <p><strong>Status:</strong> {{.Order.Status}}</p>
+    <p><strong>Total Amount:</strong> {{printf "%.2f" .Order.TotalAmount}} €</p>
+</div>
+
+<h3>Items</h3>
+<table border="1" cellpadding="5" cellspacing="0" class="items-table">
+    <thead>
+        <tr>
+            <th class="center-cell">Product Code</th>
+            <th class="center-cell">Name</th>
+            <th class="center-cell">Unit Price (€)</th>
+            <th class="center-cell">Quantity</th>
+            <th class="center-cell">Total (€)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Order.Items}}
+        <tr>
+            <td class="center-cell">{{.ProductCode}}</td>
+            <td>{{.Name}}</td>
+            <td class="center-cell">{{printf "%.2f" .Price}}</td>
+            <td class="center-cell">{{.Quantity}}</td>
+            <td class="center-cell">{{printf "%.2f" .PartialAmount}}</td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+
+{{if and (ne .Order.Status "canceled") (ne .Order.Status "delivered")}}
+<form action="/app/order/{{.Order.OrderId}}/cancel" method="POST" style="margin-top:20px;">
+    <button type="submit" class="cancel-btn"
+        onclick="return confirm('Are you sure you want to cancel this order?')">
+        Cancel Order
+    </button>
+</form>
+{{end}}
+
+{{template "footer.html" .}}

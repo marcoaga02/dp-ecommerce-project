@@ -23,8 +23,8 @@ func main() {
 	addresses := map[string]string{
 		"auth":    fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "AUTH_NAME"), grpcPort),
 		"product": fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "PRODUCT_NAME"), grpcPort),
-		"cart": fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "CART_NAME"), grpcPort),
-		//"order": fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "ORDER_NAME"), grpcPort),
+		"cart":    fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "CART_NAME"), grpcPort),
+		"order":   fmt.Sprintf("%s:%s", GetEnvOrFatal(myLogger, "ORDER_NAME"), grpcPort),
 	}
 
 	serviceManager := manager.NewServiceManager(addresses, logger.NewStdLogger(logLevel, "service-manager"), 15*time.Second, 2*time.Second)
@@ -34,7 +34,8 @@ func main() {
 	authClient := clients.NewAuthClient("auth", serviceManager, logger.NewStdLogger(logLevel, "auth-client"), 1*time.Second)
 	prodClient := clients.NewProductClient("product", serviceManager, logger.NewStdLogger(logLevel, "product-client"), 1*time.Second)
 	cartClient := clients.NewCartClient("cart", serviceManager, logger.NewStdLogger(logLevel, "cart-client"), 1*time.Second)
-	srv_orch := orchestrator.NewServiceOrchestrator(authClient, prodClient, cartClient, logger.NewStdLogger(logLevel, "service-orchestrator"))
+	orderClient := clients.NewOrderClient("order", serviceManager, logger.NewStdLogger(logLevel, "order-client"), 1*time.Second)
+	srv_orch := orchestrator.NewServiceOrchestrator(authClient, prodClient, cartClient, orderClient, logger.NewStdLogger(logLevel, "service-orchestrator"))
 
 	sessionSecret := GetEnvOrFatal(myLogger, "SESSION_SECRET")
 	router := gin.Default()
@@ -105,6 +106,19 @@ func main() {
 
 			cart.POST("/:code/update", webServer.UpdateQuantityItemIntoCartPostHandler)
 			cart.POST("/:code/delete", webServer.RemoveItemFromCartPostHandler)
+		}
+
+		order := app.Group("/order")
+		{
+			order.POST("/", webServer.CreateOrderPostHandler)
+			order.GET("/", webServer.OrdersListByUsernameGetHandler)
+			order.GET("/:id", webServer.ViewOrderDetailsGetHandler)
+			order.POST("/:id/cancel", webServer.CancelOrderPostHandler)
+			product.Use(webServer.AdminRequired())
+			{
+				//orderAdmin.GET("/all", webServer.OrdersListAllGetHandler)
+    			//orderAdmin.GET("/:id", webServer.ViewOrderDetailsGetHandler)
+			}
 		}
 	}
 

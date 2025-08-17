@@ -11,7 +11,7 @@ type ServiceOrchestrator struct {
 	authClient    interfaces.AuthClientInterface
 	productClient interfaces.ProductClientInterface
 	cartClient    interfaces.CartClientInterface
-	// orderClient clients.orderClient
+	orderClient   interfaces.OrderClientInterface
 
 	logger logger.Logger
 }
@@ -20,15 +20,15 @@ type ServiceOrchestrator struct {
 func NewServiceOrchestrator(authClient interfaces.AuthClientInterface,
 	productClient interfaces.ProductClientInterface,
 	cartClient interfaces.CartClientInterface,
+	orderClient interfaces.OrderClientInterface,
 	log logger.Logger) *ServiceOrchestrator {
 
 	return &ServiceOrchestrator{
 		authClient:    authClient,
 		productClient: productClient,
 		cartClient:    cartClient,
-		// orderClient: orderClient
-
-		logger: log,
+		orderClient:   orderClient,
+		logger:        log,
 	}
 }
 
@@ -124,7 +124,7 @@ func (so *ServiceOrchestrator) GetUser(username string) (bool, *model.User, erro
 		so.logger.Error("Retrieval error of user '%s': %v", username, err)
 		return false, nil, err
 	}
-	if !succ {
+	if !succ || user == nil {
 		so.logger.Warn("Retrieval failed of user '%s'", username)
 		return false, nil, nil
 	}
@@ -176,7 +176,7 @@ func (so *ServiceOrchestrator) GetProduct(code string) (bool, *model.Product, er
 		so.logger.Error("Retrieval error of product with code '%s': %v", code, err)
 		return false, nil, err
 	}
-	if !succ {
+	if !succ || prod == nil {
 		so.logger.Warn("Retrieval failed of product with code '%s'", code)
 		return false, nil, nil
 	}
@@ -333,8 +333,8 @@ func (so *ServiceOrchestrator) RemoveProductFromAllCarts(code string) (bool, err
 	return true, nil
 }
 
-// GetProductFromCart retrieves a product from the cart of a user
-func (so *ServiceOrchestrator) GetProductFromCart(username, code string) (bool, *model.CartItem, error) {
+// GetItemFromCart retrieves a cart item from the cart of a user
+func (so *ServiceOrchestrator) GetItemFromCart(username, code string) (bool, *model.CartItem, error) {
 	succ, items, err := so.GetListOfProductsIntoCart(username)
 	if err != nil { // error already logged in the other orchestrator function
 		return false, nil, err
@@ -352,4 +352,89 @@ func (so *ServiceOrchestrator) GetProductFromCart(username, code string) (bool, 
 
 	so.logger.Error("Product with code '%s' not found into the cart of user '%s'", code, username)
 	return false, nil, nil
+}
+
+/*
+* ORDER SECTION
+ */
+
+// CreateOrder creates a new order
+func (so *ServiceOrchestrator) CreateOrder(username string, items []*model.OrderItem) (bool, int32, error) {
+	const errOrderID int32 = -1
+	succ, orderId, err := so.orderClient.CreateOrder(username, model.ModelOrderItemsListToProtoOrderItemsList(items))
+	if err != nil {
+		so.logger.Error("Error during creation of order for user '%s' :%v", username, err)
+		return false, errOrderID, err
+	}
+	if !succ {
+		so.logger.Warn("Order creation failed for user '%s'", username)
+		return false, errOrderID, nil
+	}
+
+	so.logger.Info("Successful order creation for user '%s'", username)
+	return true, orderId, nil
+}
+
+// GetOrder retrieves the order with the given id
+func (so *ServiceOrchestrator) GetOrder(orderId int32) (bool, *model.Order, error) {
+	succ, order, err := so.orderClient.GetOrder(orderId)
+	if err != nil {
+		so.logger.Error("Retrieval error for order with ID '%d': %v", order, err)
+		return false, nil, err
+	}
+	if !succ || order == nil {
+		so.logger.Warn("Retrieval failed for order with ID '%d'", orderId)
+		return false, nil, nil
+	}
+
+	so.logger.Info("Successful retrieval of order with ID '%d'", orderId)
+	return true, model.ProtoOrderToModelOrder(order), nil
+}
+
+// UpdateOrderStatus updates the status of the order with the given id
+func (so *ServiceOrchestrator) UpdateOrderStatus(orderId int32, status model.Status) (bool, error) {
+	succ, err := so.orderClient.UpdateOrderStatus(orderId, model.ModelStatusToProtoStatus(status))
+	if err != nil {
+		so.logger.Error("Update status error for order with ID '%d': %v", orderId, err)
+		return false, err
+	}
+	if !succ {
+		so.logger.Warn("Status update failed for order with ID '%d'", orderId)
+		return false, err
+	}
+
+	so.logger.Info("Successful update of the status to '%s' for order with ID '%d'", status.String(), orderId)
+	return true, nil
+}
+
+// GetOrdersListByUsername retrieves the list of all orders of a given user
+func (so *ServiceOrchestrator) GetOrdersListByUsername(username string) (bool, []*model.Order, error) {
+	succ, orders, err := so.orderClient.ListOrdersByUsername(username)
+	if err != nil {
+		so.logger.Error("Retrieval error for orders of user '%s': %v", username, err)
+		return false, nil, err
+	}
+	if !succ || orders == nil || len(orders) == 0 {
+		so.logger.Warn("Failed retrieval of orders for user '%s'", username)
+		return false, nil, nil
+	}
+
+	so.logger.Info("Successful retrieval of products for user '%s'", username)
+	return true, model.ProtoOrdersListToModelOrdersList(orders), nil
+}
+
+// GetAllOrdersList retrieves the list of all orders
+func (so *ServiceOrchestrator) GetAllOrdersList() (bool, []*model.Order, error) {
+	succ, orders, err := so.orderClient.ListAllOrders()
+	if err != nil {
+		so.logger.Error("Error during the retrieval of all orders")
+		return false, nil, err
+	}
+	if !succ || orders == nil || len(orders) == 0 {
+		so.logger.Warn("Failed retrieval of all orders")
+		return false, nil, nil
+	}
+
+	so.logger.Info("Successful retrieval of all orders")
+	return true, model.ProtoOrdersListToModelOrdersList(orders), nil
 }

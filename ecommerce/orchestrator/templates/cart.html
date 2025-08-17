@@ -197,14 +197,14 @@
         </button>
     </form>
 
-    <form method="GET" action="/app/checkout" style="display:inline; margin-left:10px;">
-        <button type="submit" class="order-btn">
-            Continue with your order
+    <form method="POST" action="/app/order/" style="display:inline; margin-left:10px;">
+        <button type="submit" class="order-btn" onclick="return confirm('Are you sure you want to place the order?')">
+            Place order
         </button>
     </form>
 </div>
 {{else}}
-<p>Your cart is empty.</p>
+<p><em>The cart is empty.</em></p>
 {{end}}
 
 <p>

@@ -121,7 +121,7 @@ func (c *ProductClient) GetProduct(code string) (bool, *pb.Product, error) {
 		return false, nil, fmt.Errorf("Product retrieval failed: received nil response without error")
 	}
 	if !res.GetSuccess() {
-		c.logger.Error("Failed retrieval of product with code '%s': %s", code, res.GetErrorMessage())
+		c.logger.Warn("Failed retrieval of product with code '%s': %s", code, res.GetErrorMessage())
 		return false, nil, nil
 	}
 

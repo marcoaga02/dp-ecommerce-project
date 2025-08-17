@@ -58,6 +58,15 @@
             border-radius: 5px;
         }
 
+        .warning {
+            background-color: #f5f8d7;
+            color: #dde02e;
+            border: 1px solid #f5d02d;
+            padding: 10px 15px;
+            margin: 15px 20px;
+            border-radius: 5px;
+        }
+
         main {
             padding: 20px;
         }
@@ -80,9 +89,10 @@
             {{if .IsLoggedIn}}
             <span class="user-info">Hello {{.Username}}</span>
             <a href="/app/">Home</a>
+            <a href="/app/cart/">Cart</a>
+            <a href="/app/order/">Orders</a>
             <a href="/app/user/profile">Profile</a>
             <a href="/app/user/password">Change Password</a>
-            <a href="/app/cart/">Cart</a>
             <a href="/app/user/logout">Logout</a>
             {{else}}
             <a href="/login">Login</a>
@@ -97,5 +107,8 @@
         {{end}}
         {{if .Error}}
         <div class="error">{{.Error}}</div>
+        {{end}}
+        {{if .Warning}}
+        <div class="warning">{{.Warning}}</div>
         {{end}}
 {{end}}

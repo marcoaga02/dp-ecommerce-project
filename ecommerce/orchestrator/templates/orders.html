@@ -1,0 +1,80 @@
+{{template "header.html" .}}
+<style>
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .center-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .cancel-btn {
+        background: #dc3545;
+        color: white;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .cancel-btn:hover {
+        background: #9c2632;
+    }
+
+    .view-btn {
+        background: #007bff;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 3px;
+        text-decoration: none;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .view-btn:hover {
+        background: #0058b6;
+    }
+</style>
+
+<h2>My Orders</h2>
+
+
+{{if .Orders}}
+<table border="1" cellpadding="5" cellspacing="0" class="orders-table">
+    <thead>
+        <tr>
+            <th class="center-cell">Order ID</th>
+            <th class="center-cell">Status</th>
+            <th class="center-cell">Total Amount (€)</th>
+            <th class="center-cell">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{range .Orders}}
+        <tr>
+            <td class="center-cell">{{.OrderId}}</td>
+            <td class="center-cell">{{.Status}}</td>
+            <td class="center-cell">{{printf "%.2f" .TotalAmount}}</td>
+            <td class="center-cell">
+                <a href="/app/order/{{.OrderId}}" class="view-btn">View</a>
+                {{if and (ne .Status "canceled") (ne .Status "delivered")}}
+                <form action="/app/order/{{.OrderId}}/cancel" method="POST" style="display:inline;">
+                    <button type="submit" class="cancel-btn"
+                        onclick="return confirm('Are you sure you want to cancel order {{.OrderId}}?')">
+                        Cancel
+                    </button>
+                </form>
+                {{end}}
+            </td>
+        </tr>
+        {{end}}
+    </tbody>
+</table>
+{{else}}
+<p><em>Order list empty</em></p>
+{{end}}
+{{template "footer.html" .}}
