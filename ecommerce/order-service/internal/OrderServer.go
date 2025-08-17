@@ -74,13 +74,6 @@ func (s *OrderServer) CreateOrder(ctx context.Context, in *pb.CreateOrderRequest
 				ErrorMessage: fmt.Sprintf("Item number %d has quantity equal to zero", i),
 			}, status.Error(codes.InvalidArgument, "All product quantities must be positive")
 		}
-
-		totalPrice := item.Price * float64(item.Quantity)
-
-		if item.TotalPrice > 0 && item.TotalPrice != totalPrice {
-			s.logger.Info("Overwriting total price for item number %d in order for username '%s'", i, in.Username)
-		}
-		item.TotalPrice = totalPrice
 	}
 
 	itemsNumber := len(in.Items)

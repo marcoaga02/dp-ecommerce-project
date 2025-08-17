@@ -17,13 +17,10 @@ func ModelOrderItemToProtoOrderItem(item *OrderItem) *pb.OrderItem {
 		return nil
 	}
 
-	var totalPrice float64 = item.UnitPrice * float64(item.Quantity)
-
 	return &pb.OrderItem{
 		ProductCode: item.ProductCode,
 		Name: item.ProductName,
 		Price: item.UnitPrice,
 		Quantity: item.Quantity,
-		TotalPrice: totalPrice,
 	}
 }

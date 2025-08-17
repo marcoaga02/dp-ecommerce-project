@@ -65,7 +65,7 @@ func (r *GormOrderRepository) GetOrder(orderId int32) (bool, *pb.Order, error) {
 			r.logger.Warn("Order with ID '%d' not found", orderId)
 			return false, nil, nil
 		}
-		r.logger.Error("Error retrieving order with code '%s': %v", orderId, err)
+		r.logger.Error("Error retrieving order with ID '%d': %v", orderId, err)
 		return false, nil, err
 	}
 

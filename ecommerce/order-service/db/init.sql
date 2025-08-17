@@ -2,13 +2,13 @@ DROP DATABASE IF EXISTS shop_orders;
 CREATE DATABASE shop_orders;
 USE shop_orders;
 
-DROP TABLE IF EXISTS status;
-CREATE TABLE status (
+DROP TABLE IF EXISTS statuses;
+CREATE TABLE statuses (
     id INT PRIMARY KEY,
     name VARCHAR(20) NOT NULL UNIQUE
 );
 
-INSERT INTO status (id, name) VALUES
+INSERT INTO statuses (id, name) VALUES
     (0, 'UNSPECIFIED'),
     (1, 'PROCESSING'),
     (2, 'SHIPPED'),
@@ -20,7 +20,7 @@ CREATE TABLE orders (
     id INT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(32) NOT NULL,
     status_id INT NOT NULL DEFAULT 1,  -- 1 = PROCESSING
-    FOREIGN KEY (status_id) REFERENCES status(id)
+    FOREIGN KEY (status_id) REFERENCES statuses(id)
 ) ENGINE=InnoDB;
 
 DROP TABLE IF EXISTS order_items;
