@@ -72,7 +72,7 @@ func (c *OrderClient) CreateOrder(username string, items []*pb.OrderItem) (bool,
 
 	req := &pb.CreateOrderRequest{
 		Username: username,
-		Items: items,
+		Items:    items,
 	}
 
 	var itemsLen int = len(items)
@@ -123,7 +123,7 @@ func (c *OrderClient) GetOrder(orderId int32) (bool, *pb.Order, error) {
 		c.logger.Error("Received nil response without error during retrieval of order with ID '%d'", orderId)
 		return false, nil, fmt.Errorf("Order retrieval failed: received nil response without error")
 	}
-	if ! res.GetSuccess() {
+	if !res.GetSuccess() {
 		c.logger.Warn("Failed retrieval of order with ID '%d': %s", orderId, res.GetErrorMessage())
 		return false, nil, nil
 	}
@@ -154,7 +154,7 @@ func (c *OrderClient) UpdateOrderStatus(orderId int32, status pb.Status) (bool, 
 
 	req := &pb.UpdateOrderStatusRequest{
 		OrderId: orderId,
-		Status: status,
+		Status:  status,
 	}
 
 	res, err := client.UpdateOrderStatus(ctx, req)

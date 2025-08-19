@@ -111,7 +111,7 @@ func (r *GormProductRepository) UpdateProduct(code string, prod *pb.Product) (bo
 	if sizeID != model.SizeUnspecified {
 		updates["size_id"] = sizeID
 	}
-	
+
 	if prod.Color != "" {
 		updates["color"] = prod.Color
 	}
@@ -201,6 +201,7 @@ func (r *GormProductRepository) getProdByCode(code string) (*model.Product, erro
 	return &prod, nil
 }
 
+// CreateDefaultProducts cretes default products into the database
 func (r *GormProductRepository) CreateDefaultProducts() error {
 	type DefaultProduct struct {
 		Code        string
@@ -214,7 +215,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 	defaultProducts := []DefaultProduct{
 		{
 			Code:        "TSHIRT-001",
-			Name:        "Basic Cotton T-Shirt",
+			Name:        "White Cotton T-Shirt",
 			Size:        pb.Size_M,
 			Color:       "White",
 			Description: "Comfortable 100% cotton t-shirt for everyday wear",
@@ -223,7 +224,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 		},
 		{
 			Code:        "TSHIRT-002",
-			Name:        "Basic Cotton T-Shirt",
+			Name:        "Black Cotton T-Shirt",
 			Size:        pb.Size_XS,
 			Color:       "Black",
 			Description: "Comfortable 100% cotton t-shirt for everyday wear",
@@ -232,7 +233,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 		},
 		{
 			Code:        "TSHIRT-003",
-			Name:        "Basic Cotton T-Shirt",
+			Name:        "Oversized Cotton T-Shirt",
 			Size:        pb.Size_XL,
 			Color:       "Black",
 			Description: "Comfortable 100% cotton t-shirt for everyday wear",
@@ -241,7 +242,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 		},
 		{
 			Code:        "JEANS-001",
-			Name:        "Classic Denim Jeans",
+			Name:        "Blue Denim Large Jeans",
 			Size:        pb.Size_L,
 			Color:       "Blue",
 			Description: "Durable straight-cut denim jeans",
@@ -250,7 +251,7 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 		},
 		{
 			Code:        "JEANS-002",
-			Name:        "Classic Denim Jeans",
+			Name:        "Blue Denim Slim Jeans",
 			Size:        pb.Size_S,
 			Color:       "Blue",
 			Description: "Durable straight-cut denim jeans",
@@ -259,18 +260,18 @@ func (r *GormProductRepository) CreateDefaultProducts() error {
 		},
 		{
 			Code:        "HOODIE-001",
-			Name:        "Comfortable Fleece Hoodie",
+			Name:        "Grey Classic Fleece Hoodie",
 			Size:        pb.Size_S,
-			Color:       "Gray",
+			Color:       "Grey",
 			Description: "Hoodie with front pocket",
 			Stock:       75,
 			Price:       27.75,
 		},
 		{
 			Code:        "HOODIE-002",
-			Name:        "Comfortable Fleece Hoodie",
+			Name:        "Grey Oversized Fleece Hoodie",
 			Size:        pb.Size_XXL,
-			Color:       "Gray",
+			Color:       "Grey",
 			Description: "Hoodie with front pocket",
 			Stock:       45,
 			Price:       18.25,

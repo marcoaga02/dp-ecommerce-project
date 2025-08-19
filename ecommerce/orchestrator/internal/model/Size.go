@@ -6,12 +6,12 @@ type Size string
 
 const (
 	SizeUnspecified Size = "unspecified"
-	Size_XS  Size = "XS"
-	Size_S   Size = "S"
-	Size_M   Size = "M"
-	Size_L   Size = "L"
-	Size_XL  Size = "XL"
-	Size_XXL Size = "XXL"
+	Size_XS         Size = "XS"
+	Size_S          Size = "S"
+	Size_M          Size = "M"
+	Size_L          Size = "L"
+	Size_XL         Size = "XL"
+	Size_XXL        Size = "XXL"
 )
 
 var SizeMapStrToSize = map[string]Size{
@@ -40,7 +40,6 @@ var AllSizes = []string{
 	Size_XL.String(),
 	Size_XXL.String(),
 }
-
 
 // ProtoSizeToModelSize converts a pb.Size into a model.Size
 func ProtoSizeToModelSize(ps pb.Size) Size {
@@ -82,6 +81,7 @@ func ModelSizeToProtoSize(s Size) pb.Size {
 	}
 }
 
+// String returns the string associated to the model.Size
 func (s Size) String() string {
 	return string(s)
 }

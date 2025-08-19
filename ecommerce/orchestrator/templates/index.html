@@ -10,9 +10,17 @@
         margin-bottom: 10px;
     }
 
-    .welcome-container p {
-        color: #555;
-        margin-bottom: 30px;
+    .welcome-container {
+        max-width: 900px;
+        margin: 40px auto;
+        text-align: center;
+    }
+
+    .welcome-panels {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
     }
 
     .panel {
@@ -20,7 +28,7 @@
         padding: 20px;
         border-radius: 8px;
         margin-bottom: 20px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .panel h2 {
@@ -45,19 +53,22 @@
 <div class="welcome-container">
     <h1>Welcome to My Ecommerce</h1>
     <p>Where you can buy clothes for every occasion</p>
+    <div class="welcome-panels">
 
-    {{if eq .Role "administrator"}}
-    <section class="panel">
-        <h2>Administrator Panel</h2>
-        <a href="/app/admin/users" class="btn-link">Manage Users</a>
-    </section>
-    {{end}}
+        {{if eq .Role "administrator"}}
+        <section class="panel">
+            <h2>Administrator Panel</h2>
+            <p><a href="/app/admin/users" class="btn-link">Manage All Users</a></p>
+            <p><a href="/app/order/all" class="btn-link">Manage All Orders</a></p>
+        </section>
+        {{end}}
 
-    <section class="panel">
-        <h2>Client Panel</h2>
-        <a href="/app/product/" class="btn-link">Browse Products</a>
-        <a href="/app/order/" class="btn-link">Browse Orders</a>
-    </section>
+        <section class="panel">
+            <h2>Client Panel</h2>
+            <p><a href="/app/product/" class="btn-link">Browse Products</a></p>
+            <p><a href="/app/order/" class="btn-link">Browse Your Orders</a></p>
+        </section>
+    </div>
 </div>
 
 {{template "footer.html" .}}

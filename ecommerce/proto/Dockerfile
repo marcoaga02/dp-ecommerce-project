@@ -1,11 +1,11 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 # install all needed dependencies
 RUN apk add --no-cache \
-        git \
-        protobuf \
-        protobuf-dev \
-        build-base
+    git \
+    protobuf \
+    protobuf-dev \
+    build-base
 
 WORKDIR /app
 
@@ -29,14 +29,9 @@ RUN echo '#!/bin/sh' > /usr/local/bin/compile-proto && \
     echo 'done' >> /usr/local/bin/compile-proto && \
     chmod +x /usr/local/bin/compile-proto
 
+# "$@"' is a placeholder that will be substituted with the *.proto files when running the script
+# e.g. ./compile-proto *.proto
 
-#RUN echo '#!/bin/sh' > /usr/local/bin/compile-proto && \
-#    echo 'protoc --go_out=paths=source_relative:./gen \' >> /usr/local/bin/compile-proto && \
-#    echo '       --go-grpc_out=paths=source_relative:./gen "$@"' >> /usr/local/bin/compile-proto && \
-#    chmod +x /usr/local/bin/compile-proto
-    # "$@"' is a placeholder that will be substituted with the *.proto files when running the script
-    # e.g. ./compile-proto *.proto
-    
 FROM alpine:latest
 
 RUN apk add --no-cache protobuf

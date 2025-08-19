@@ -31,10 +31,10 @@ func main() {
 	serviceManager.StartMonitoring()
 	defer serviceManager.Stop()
 
-	authClient := clients.NewAuthClient("auth", serviceManager, logger.NewStdLogger(logLevel, "auth-client"), 1*time.Second)
-	prodClient := clients.NewProductClient("product", serviceManager, logger.NewStdLogger(logLevel, "product-client"), 1*time.Second)
-	cartClient := clients.NewCartClient("cart", serviceManager, logger.NewStdLogger(logLevel, "cart-client"), 1*time.Second)
-	orderClient := clients.NewOrderClient("order", serviceManager, logger.NewStdLogger(logLevel, "order-client"), 1*time.Second)
+	authClient := clients.NewAuthClient("auth", serviceManager, logger.NewStdLogger(logLevel, "auth-client"), 3*time.Second)
+	prodClient := clients.NewProductClient("product", serviceManager, logger.NewStdLogger(logLevel, "product-client"), 3*time.Second)
+	cartClient := clients.NewCartClient("cart", serviceManager, logger.NewStdLogger(logLevel, "cart-client"), 3*time.Second)
+	orderClient := clients.NewOrderClient("order", serviceManager, logger.NewStdLogger(logLevel, "order-client"), 3*time.Second)
 	srv_orch := orchestrator.NewServiceOrchestrator(authClient, prodClient, cartClient, orderClient, logger.NewStdLogger(logLevel, "service-orchestrator"))
 
 	sessionSecret := GetEnvOrFatal(myLogger, "SESSION_SECRET")
@@ -114,10 +114,10 @@ func main() {
 			order.GET("/", webServer.OrdersListByUsernameGetHandler)
 			order.GET("/:id", webServer.ViewOrderDetailsGetHandler)
 			order.POST("/:id/cancel", webServer.CancelOrderPostHandler)
-			product.Use(webServer.AdminRequired())
+			order.Use(webServer.AdminRequired())
 			{
-				//orderAdmin.GET("/all", webServer.OrdersListAllGetHandler)
-    			//orderAdmin.GET("/:id", webServer.ViewOrderDetailsGetHandler)
+				order.GET("/all", webServer.OrdersListAllGetHandler)
+				order.POST("/:id/update", webServer.UpdateOrderStatusPostHandler)
 			}
 		}
 	}

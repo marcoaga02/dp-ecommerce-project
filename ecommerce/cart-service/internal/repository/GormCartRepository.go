@@ -147,6 +147,7 @@ func (r *GormCartRepository) ClearCart(username string) (bool, error) {
 	return true, nil
 }
 
+// RemoveProductFromAllCarts removes all cart items related to a given product
 func (r *GormCartRepository) RemoveProductFromAllCarts(prodCode string) (bool, error) {
 	res := r.db.
 		Where("code = ?", prodCode).

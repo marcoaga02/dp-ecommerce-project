@@ -4,18 +4,18 @@ import pb "github.com/marcoaga02/dp-ecommerce-project/ecommerce/proto/product"
 
 type Size struct {
 	ID   int    `gorm:"column:id;primaryKey"`
-    Name string `gorm:"column:name;type:varchar(20);uniqueIndex;not null"`
+	Name string `gorm:"column:name;type:varchar(20);uniqueIndex;not null"`
 }
 
 // Constants representing sizes in the database
 const (
 	SizeUnspecified = 0
-	Size_XS  = 1
-	Size_S   = 2
-	Size_M   = 3
-	Size_L   = 4
-	Size_XL  = 5
-	Size_XXL = 6
+	Size_XS         = 1
+	Size_S          = 2
+	Size_M          = 3
+	Size_L          = 4
+	Size_XL         = 5
+	Size_XXL        = 6
 )
 
 // ModelSizeToProtoSize converts an int size into a pb.Size

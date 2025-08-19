@@ -84,6 +84,7 @@
         font-size: 14px;
         cursor: pointer;
         text-align: center;
+        border: none;
     }
 
     .order-btn {
@@ -96,6 +97,7 @@
         font-size: 14px;
         cursor: pointer;
         text-align: center;
+        border: none;
     }
 
     .stock-available {
@@ -144,6 +146,13 @@
         font-size: 18px;
         font-weight: bold;
     }
+
+    .cart-actions {
+        margin-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 </style>
 
 <h2>Shopping Cart</h2>
@@ -190,26 +199,26 @@
     Total: {{printf "%.2f" .Total}} €
 </div>
 
-<div style="margin-top: 15px; text-align: right;">
-    <form method="POST" action="/app/cart/clear" style="display:inline;">
-        <button type="submit" class="clear-btn" onclick="return confirm('Are you sure you want to clear the cart?')">
-            Clear Cart
-        </button>
-    </form>
-
-    <form method="POST" action="/app/order/" style="display:inline; margin-left:10px;">
-        <button type="submit" class="order-btn" onclick="return confirm('Are you sure you want to place the order?')">
-            Place order
-        </button>
-    </form>
-</div>
-{{else}}
-<p><em>The cart is empty.</em></p>
-{{end}}
-
-<p>
+<div class="cart-actions">
     <a href="/app/product/" class="back-btn">Back to Products</a>
-</p>
+
+    <div>
+        <form method="POST" action="/app/cart/clear" style="display:inline;">
+            <button type="submit" class="clear-btn"
+                onclick="return confirm('Are you sure you want to clear the cart?')">
+                Clear Cart
+            </button>
+        </form>
+
+        <form method="POST" action="/app/order/" style="display:inline; margin-left:10px;">
+            <button type="submit" class="order-btn"
+                onclick="return confirm('Are you sure you want to place the order?')">
+                Place order
+            </button>
+        </form>
+    </div>
+</div>
+{{end}}
 
 <script>
     function enableEdit(modifyBtn) {

@@ -19,8 +19,8 @@ func ModelOrderItemToProtoOrderItem(item *OrderItem) *pb.OrderItem {
 
 	return &pb.OrderItem{
 		ProductCode: item.ProductCode,
-		Name: item.ProductName,
-		Price: item.UnitPrice,
-		Quantity: item.Quantity,
+		Name:        item.ProductName,
+		Price:       item.UnitPrice,
+		Quantity:    item.Quantity,
 	}
 }

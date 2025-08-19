@@ -17,11 +17,13 @@ type ServiceOrchestrator struct {
 }
 
 // NewServiceOrchestrator creates an instance of the struct ServiceOrchestrator
-func NewServiceOrchestrator(authClient interfaces.AuthClientInterface,
+func NewServiceOrchestrator(
+	authClient interfaces.AuthClientInterface,
 	productClient interfaces.ProductClientInterface,
 	cartClient interfaces.CartClientInterface,
 	orderClient interfaces.OrderClientInterface,
-	log logger.Logger) *ServiceOrchestrator {
+	log logger.Logger,
+) *ServiceOrchestrator {
 
 	return &ServiceOrchestrator{
 		authClient:    authClient,

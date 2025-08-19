@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// ProductServer implements the product service gRPC server.
 type ProductServer struct {
 	pb.UnimplementedProductServiceServer
 	db     interfaces.ProductServiceInterface

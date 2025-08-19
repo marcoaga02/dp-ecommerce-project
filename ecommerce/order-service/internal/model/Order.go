@@ -7,11 +7,11 @@ import (
 )
 
 type Order struct {
-	ID          int32       `gorm:"column:id;primaryKey;autoIncrement"`
-	Username    string      `gorm:"column:username;type:varchar(32);not null"`
-	StatusID    int         `gorm:"column:status_id;not null;default:1"` // foreign key
-	Status      Status      `gorm:"foreignKey:StatusID;references:ID"`   // GORM relationship
-	Items       []OrderItem `gorm:"foreignKey:OrderID;references:ID"`
+	ID       int32       `gorm:"column:id;primaryKey;autoIncrement"`
+	Username string      `gorm:"column:username;type:varchar(32);not null"`
+	StatusID int         `gorm:"column:status_id;not null;default:1"` // foreign key
+	Status   Status      `gorm:"foreignKey:StatusID;references:ID"`   // GORM relationship
+	Items    []OrderItem `gorm:"foreignKey:OrderID;references:ID"`
 }
 
 // ModelOrderToProtoOrder converts a model.Order into a pb.Order
@@ -39,7 +39,7 @@ func ModelOrderToProtoOrder(order *Order) (*pb.Order, error) {
 		pbItem := ModelOrderItemToProtoOrderItem(&modelItem)
 		pbOrder.Items = append(pbOrder.Items, pbItem)
 
-		var totalPricePbItem float64 =  pbItem.Price * float64(pbItem.Quantity)
+		var totalPricePbItem float64 = pbItem.Price * float64(pbItem.Quantity)
 		totalAmount = totalAmount + totalPricePbItem
 	}
 

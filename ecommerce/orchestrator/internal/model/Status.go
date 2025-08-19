@@ -60,6 +60,7 @@ func ModelStatusToProtoStatus(ps Status) pb.Status {
 	}
 }
 
+// String returns the string associated to the model.Status
 func (r Status) String() string {
 	return string(r)
 }

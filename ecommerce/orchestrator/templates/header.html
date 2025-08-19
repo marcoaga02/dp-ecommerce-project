@@ -60,8 +60,8 @@
 
         .warning {
             background-color: #f5f8d7;
-            color: #dde02e;
-            border: 1px solid #f5d02d;
+            color: #f79413;
+            border: 1px solid #ffe985;
             padding: 10px 15px;
             margin: 15px 20px;
             border-radius: 5px;
@@ -89,6 +89,7 @@
             {{if .IsLoggedIn}}
             <span class="user-info">Hello {{.Username}}</span>
             <a href="/app/">Home</a>
+            <a href="/app/product/">Shop</a>
             <a href="/app/cart/">Cart</a>
             <a href="/app/order/">Orders</a>
             <a href="/app/user/profile">Profile</a>
@@ -111,4 +112,4 @@
         {{if .Warning}}
         <div class="warning">{{.Warning}}</div>
         {{end}}
-{{end}}
+        {{end}}

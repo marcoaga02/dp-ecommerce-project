@@ -11,8 +11,8 @@ COPY logger ./logger
 WORKDIR /app/cart-service
 
 RUN if [ "$BUILD_MODE" = "prod" ]; then \
-      sed -i '/replace.*=>/d' go.mod; \
-    fi
+  sed -i '/replace.*=>/d' go.mod; \
+  fi
 
 RUN go mod download
 

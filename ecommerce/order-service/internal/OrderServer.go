@@ -13,6 +13,7 @@ import (
 
 const errOrderID int32 = -1
 
+// OrderServer implements the order service gRPC server.
 type OrderServer struct {
 	pb.UnimplementedOrderServiceServer
 	db     interfaces.OrderServiceInterface
@@ -143,7 +144,7 @@ func (s *OrderServer) UpdateOrderStatus(ctx context.Context, in *pb.UpdateOrderS
 	res, err := s.GetOrder(ctx, &pb.GetOrderRequest{
 		OrderId: in.OrderId,
 	})
-	if err != nil { // error already logger in the GetOrder method
+	if err != nil { // error already logged in the GetOrder method
 		return &pb.UpdateOrderStatusResponse{
 			Success:      false,
 			ErrorMessage: "Internal error while retrieving order",
@@ -201,7 +202,7 @@ func (s *OrderServer) ListOrdersByUsername(ctx context.Context, in *pb.ListOrder
 		s.logger.Warn("Username empty in list orders by username request")
 		return &pb.ListOrdersByUsernameResponse{
 			Success:      false,
-			Orders: nil,
+			Orders:       nil,
 			ErrorMessage: "Username must be provided and not empty",
 		}, status.Error(codes.InvalidArgument, "Username must be provided and not empty")
 	}
@@ -210,16 +211,16 @@ func (s *OrderServer) ListOrdersByUsername(ctx context.Context, in *pb.ListOrder
 	if err != nil {
 		s.logger.Error("Internal error while retrieving all orders for user '%s': %v", in.Username, err)
 		return &pb.ListOrdersByUsernameResponse{
-			Success: false,
-			Orders: nil,
+			Success:      false,
+			Orders:       nil,
 			ErrorMessage: "Internal server error while retrieving all orders",
 		}, nil
 	}
 	if !succ {
 		s.logger.Warn("Failed retrieval of all orders for user '%s'", in.Username)
 		return &pb.ListOrdersByUsernameResponse{
-			Success: false,
-			Orders: nil,
+			Success:      false,
+			Orders:       nil,
 			ErrorMessage: "No orders found for the user",
 		}, nil
 	}
@@ -227,7 +228,7 @@ func (s *OrderServer) ListOrdersByUsername(ctx context.Context, in *pb.ListOrder
 	s.logger.Info("Successful retrieval of all orders for user '%s'", in.Username)
 	return &pb.ListOrdersByUsernameResponse{
 		Success: true,
-		Orders: orders,
+		Orders:  orders,
 	}, nil
 }
 
@@ -237,16 +238,16 @@ func (s *OrderServer) ListAllOrders(ctx context.Context, in *pb.ListAllOrdersReq
 	if err != nil {
 		s.logger.Error("Internal error while retrieving all orders: %v", err)
 		return &pb.ListAllOrdersResponse{
-			Success: false,
-			Orders: nil,
+			Success:      false,
+			Orders:       nil,
 			ErrorMessage: "Internal server error while retrieving all the orders",
 		}, err
 	}
 	if !succ {
 		s.logger.Warn("Failed retrieval of all the orders")
 		return &pb.ListAllOrdersResponse{
-			Success: false,
-			Orders: nil,
+			Success:      false,
+			Orders:       nil,
 			ErrorMessage: "No orders found",
 		}, nil
 	}
@@ -254,7 +255,7 @@ func (s *OrderServer) ListAllOrders(ctx context.Context, in *pb.ListAllOrdersReq
 	s.logger.Info("Successful retrieval of all orders")
 	return &pb.ListAllOrdersResponse{
 		Success: true,
-		Orders: orders,
+		Orders:  orders,
 	}, nil
 }
 

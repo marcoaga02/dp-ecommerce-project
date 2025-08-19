@@ -1,5 +1,42 @@
 {{template "header.html" .}}
 <style>
+    .cancel-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        background: #dc3545;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        text-align: center;
+        border: none;
+        outline: none;
+    }
+
+    .cancel-btn:hover {
+        background: #9c2632;
+    }
+
+    .update-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        background: #28a745;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        text-align: center;
+        border: none;
+        outline: none;
+        margin-left: 10px;
+    }
+
+    .update-btn:hover {
+        background: green;
+    }
+
     .order-details {
         margin-bottom: 20px;
     }
@@ -12,6 +49,17 @@
     .center-cell {
         text-align: center;
         vertical-align: middle;
+    }
+
+    form {
+        margin-top: 20px;
+    }
+
+    .order-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
     }
 </style>
 
@@ -47,13 +95,29 @@
     </tbody>
 </table>
 
-{{if and (ne .Order.Status "canceled") (ne .Order.Status "delivered")}}
-<form action="/app/order/{{.Order.OrderId}}/cancel" method="POST" style="margin-top:20px;">
-    <button type="submit" class="cancel-btn"
-        onclick="return confirm('Are you sure you want to cancel this order?')">
-        Cancel Order
-    </button>
-</form>
-{{end}}
-
+<div class="order-actions">
+    {{if and (ne .Order.Status "canceled") (ne .Order.Status "delivered") (eq .Username .Order.Username) }}
+    <form action="/app/order/{{.Order.OrderId}}/cancel" method="POST" style="margin-top:20px;">
+        <button type="submit" class="cancel-btn"
+            onclick="return confirm('Are you sure you want to cancel this order?')">
+            Cancel Order
+        </button>
+    </form>
+    {{end}}
+    {{if and (eq .Role "administrator") (and (ne .Order.Status "canceled") (ne .Order.Status "delivered"))}}
+    <form action="/app/order/{{.Order.OrderId}}/update" method="POST">
+        <label for="status"><strong>Update Status:</strong></label>
+        <select name="status" id="status">
+            {{if eq .Order.Status "processing"}}
+            <option value="processing" selected>Processing</option>
+            <option value="shipped">Shipped</option>
+            {{else if eq .Order.Status "shipped"}}
+            <option value="shipped" selected>Shipped</option>
+            <option value="delivered">Delivered</option>
+            {{end}}
+        </select>
+        <button type="submit" class="update-btn">Update Status</button>
+    </form>
+    {{end}}
+</div>
 {{template "footer.html" .}}

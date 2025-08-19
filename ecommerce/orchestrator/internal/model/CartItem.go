@@ -19,6 +19,7 @@ func ProtoCartItemToModelCartItem(item *pb.CartItem) *CartItem {
 	}
 }
 
+// ProtoCartItemsListToModelCartItemsList converts a []*pb.CartItem into a []*model.CartItem
 func ProtoCartItemsListToModelCartItemsList(items []*pb.CartItem) []*CartItem {
 	if items == nil {
 		return nil

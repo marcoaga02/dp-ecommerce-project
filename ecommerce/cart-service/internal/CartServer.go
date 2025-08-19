@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// CartServer implements the cart service gRPC server.
 type CartServer struct {
 	pb.UnimplementedCartServiceServer
 	db     interfaces.CartServiceInterface
@@ -47,14 +48,14 @@ func (s *CartServer) AddItem(ctx context.Context, in *pb.AddItemRequest) (*pb.Ad
 	if err != nil {
 		s.logger.Error("Internal error while adding n=%d products '%s' to the user '%s' cart: %v", in.Quantity, in.ProductCode, in.Username, err)
 		return &pb.AddItemResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: "Internal server error while adding products to the cart",
 		}, err
 	}
 	if !succ {
 		s.logger.Warn("Addition of n=%d products '%s' to the user '%s' cart failed", in.Quantity, in.ProductCode, in.Username)
 		return &pb.AddItemResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: "Addition of the product in the cart failed",
 		}, nil
 	}
@@ -79,14 +80,14 @@ func (s *CartServer) RemoveItem(ctx context.Context, in *pb.RemoveItemRequest) (
 	if err != nil {
 		s.logger.Error("Internal error while removing product with code '%s' from the user '%s' cart: %v", in.ProductCode, in.Username, err)
 		return &pb.RemoveItemResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: "Internal server error while removing the product from the cart",
 		}, err
 	}
 	if !succ {
 		s.logger.Warn("Failed removal of product with code '%s' from the user '%s' cart", in.ProductCode, in.Username)
 		return &pb.RemoveItemResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: "Failed removal of the product: product not found in the user's cart",
 		}, nil
 	}
@@ -111,14 +112,14 @@ func (s *CartServer) UpdateItemQuantity(ctx context.Context, in *pb.UpdateItemQu
 	if err != nil {
 		s.logger.Error("Internal error while updating quantity for product '%s' into the cart of user '%s': %v", in.ProductCode, in.Username, err)
 		return &pb.UpdateItemQuantityResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: "Internal server error while updating the quantity of the product into the user's cart",
 		}, err
 	}
 	if !succ {
 		s.logger.Warn("No cart item found for user '%s' and product with code '%s'", in.Username, in.ProductCode)
 		return &pb.UpdateItemQuantityResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: fmt.Sprintf("Product with code '%s' not present in the cart", in.ProductCode),
 		}, nil
 	}
@@ -131,7 +132,7 @@ func (s *CartServer) UpdateItemQuantity(ctx context.Context, in *pb.UpdateItemQu
 
 // ListCartItems retrieves all cart items for the specified user
 func (s *CartServer) ListCartItems(ctx context.Context, in *pb.ListCartItemsRequest) (*pb.ListCartItemsResponse, error) {
-	if in.Username == ""{
+	if in.Username == "" {
 		s.logger.Warn("Username empty in list user items request")
 		return &pb.ListCartItemsResponse{
 			Success:      false,
@@ -143,16 +144,16 @@ func (s *CartServer) ListCartItems(ctx context.Context, in *pb.ListCartItemsRequ
 	if err != nil {
 		s.logger.Error("Internal error while retrieving all items in the cart of the user '%s': %v", in.Username, err)
 		return &pb.ListCartItemsResponse{
-			Success: false,
-			Items: nil,
+			Success:      false,
+			Items:        nil,
 			ErrorMessage: "Internal server error while retrieving all products from the cart",
 		}, err
 	}
 	if !succ {
 		s.logger.Warn("Failed retrieval of all products in the cart of user '%s'", in.Username)
 		return &pb.ListCartItemsResponse{
-			Success: false,
-			Items: nil,
+			Success:      false,
+			Items:        nil,
 			ErrorMessage: "No products found in the user's cart",
 		}, nil
 	}
@@ -160,13 +161,13 @@ func (s *CartServer) ListCartItems(ctx context.Context, in *pb.ListCartItemsRequ
 	s.logger.Info("Successful retrieval of all products in the cart of user '%s'", in.Username)
 	return &pb.ListCartItemsResponse{
 		Success: true,
-		Items: items,
+		Items:   items,
 	}, nil
 }
 
 // ClearCart removes all products from the specified user's cart
 func (s *CartServer) ClearCart(ctx context.Context, in *pb.ClearCartRequest) (*pb.ClearCartResponse, error) {
-	if in.Username == ""{
+	if in.Username == "" {
 		s.logger.Warn("Username empty in clear cart request")
 		return &pb.ClearCartResponse{
 			Success:      false,
@@ -178,14 +179,14 @@ func (s *CartServer) ClearCart(ctx context.Context, in *pb.ClearCartRequest) (*p
 	if err != nil {
 		s.logger.Error("Internal error while clearing the cart of the user '%s': %v", in.Username, err)
 		return &pb.ClearCartResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: "Internal server error while clearing the cart",
 		}, err
 	}
 	if !succ {
 		s.logger.Warn("Failed removal of all products from the cart of the user '%s'", in.Username)
 		return &pb.ClearCartResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: "User's cart already empty",
 		}, nil
 	}
@@ -196,7 +197,8 @@ func (s *CartServer) ClearCart(ctx context.Context, in *pb.ClearCartRequest) (*p
 	}, nil
 }
 
-func(s *CartServer) RemoveProductFromAllCarts(ctx context.Context, in *pb.RemoveProductFromAllCartsRequest) (*pb.RemoveProductFromAllCartsResponse, error) {
+// RemoveProductFromAllCarts removes all cart items related to a given product
+func (s *CartServer) RemoveProductFromAllCarts(ctx context.Context, in *pb.RemoveProductFromAllCartsRequest) (*pb.RemoveProductFromAllCartsResponse, error) {
 	if in.ProductCode == "" {
 		s.logger.Warn("Product code empty in remove product from all carts request")
 		return &pb.RemoveProductFromAllCartsResponse{
@@ -209,14 +211,14 @@ func(s *CartServer) RemoveProductFromAllCarts(ctx context.Context, in *pb.Remove
 	if err != nil {
 		s.logger.Error("Internal error while removing the product with code '%s' from all carts: %v", in.ProductCode, err)
 		return &pb.RemoveProductFromAllCartsResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: "Internal server error while removing the product from all carts",
 		}, err
 	}
 	if !succ {
 		s.logger.Warn("Failed removal of the product with code '%s' from all carts", in.ProductCode)
 		return &pb.RemoveProductFromAllCartsResponse{
-			Success: false,
+			Success:      false,
 			ErrorMessage: "No carts found containing the product",
 		}, nil
 	}

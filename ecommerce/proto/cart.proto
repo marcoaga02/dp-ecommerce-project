@@ -83,7 +83,7 @@ message ClearCartResponse {
 
 // REMOVE PRODUCT FROM ALL CARTS
 message RemoveProductFromAllCartsRequest {
-  string product_code = 1; // codice del prodotto da rimuovere
+  string product_code = 1;
 }
 
 message RemoveProductFromAllCartsResponse {

@@ -49,7 +49,7 @@ func ProtoProductsListToModelProductsList(prods []*pb.Product) []*Product {
 	if prods == nil {
 		return nil
 	}
-	
+
 	var modelProds []*Product
 
 	for _, prod := range prods {

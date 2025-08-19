@@ -230,6 +230,7 @@ func (c *CartClient) ClearCart(username string) (bool, error) {
 	return true, nil
 }
 
+// RemoveProductFromAllCarts removes all cart items related to a given product
 func (c *CartClient) RemoveProductFromAllCarts(prodCode string) (bool, error) {
 	if prodCode == "" {
 		c.logger.Warn("Product code empty in remove product from all carts request")

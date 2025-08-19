@@ -29,7 +29,7 @@ func ModelUserToProtoUser(user *User) (*pb.User, error) {
 	if user == nil {
 		return nil, fmt.Errorf("Input argument is nil")
 	}
-	
+
 	role := ModelRoleToProtoRole(user.RoleID)
 	if role == RoleUnspecified {
 		return nil, fmt.Errorf("Invalid user role id '%d'", user.RoleID)

@@ -22,7 +22,7 @@ func ModelProductToProtoProduct(prod *Product) (*pb.Product, error) {
 	if prod == nil {
 		return nil, fmt.Errorf("Input argument is nil")
 	}
-	
+
 	size := ModelSizeToProtoSize(prod.SizeID)
 	if size == SizeUnspecified {
 		return nil, fmt.Errorf("Invalid product size id '%d'", prod.SizeID)

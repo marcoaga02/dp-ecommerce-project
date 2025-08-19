@@ -15,8 +15,8 @@ func ModelItemToProtoItem(cartItem *CartItem) *pb.CartItem {
 	}
 
 	return &pb.CartItem{
-		Username: cartItem.Username,
+		Username:    cartItem.Username,
 		ProductCode: cartItem.Code,
-		Quantity: cartItem.Quantity,
+		Quantity:    cartItem.Quantity,
 	}
 }

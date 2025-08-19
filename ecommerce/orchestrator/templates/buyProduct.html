@@ -91,8 +91,8 @@
                 <form action="/app/cart/items" method="POST"
                     style="display: flex; justify-content: center; align-items: center;">
                     <input type="hidden" name="code" value="{{.Code}}">
-                    <input type="number" name="quantity" min="0" max="{{.Available}}" value="1"
-                        class="quantity-input" {{if eq .Stock 1}}disabled{{end}}>
+                    <input type="number" name="quantity" min="0" max="{{.Available}}" value="1" class="quantity-input"
+                        {{if eq .Stock 1}}disabled{{end}}>
             </td>
             <td class="center-cell">
                 <button type="submit" class="add-cart-btn" {{if eq .Available 0}}disabled{{end}}>Add to Cart</button>

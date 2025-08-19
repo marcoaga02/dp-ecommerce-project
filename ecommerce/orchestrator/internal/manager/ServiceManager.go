@@ -35,7 +35,7 @@ type ServiceManager struct {
 // NewServiceManager creates a ServiceManager.
 //
 // Parameters:
-//   - addresses: map serviceName -> grpc target (e.g. "auth:50051")
+//   - addresses: map serviceName -> grpc target (e.g. "auth:9000")
 //   - logger: a logger that implements logger.Logger
 //   - upInterval: how often to poll a service that is already READY
 //   - downInterval: how often to retry a service that is NOT ready
@@ -87,7 +87,7 @@ func (sm *ServiceManager) StartMonitoring() {
 func (sm *ServiceManager) Stop() {
 	sm.mu.Lock()
 	if sm.cancel != nil {
-		sm.cancel() // all the channels Done associated to the context, are closed
+		sm.cancel() // all the channels Done associated to the context are closed
 		sm.cancel = nil
 	}
 	sm.mu.Unlock()
@@ -167,7 +167,7 @@ func (sm *ServiceManager) monitorService(ctx context.Context, name, addr string)
 		}
 
 		// Service is healthy: set status and keep the connection.
-		sm.logger.Info("Service '%s' is SERVING at address '%s'", name, addr) // too much verbosity
+		sm.logger.Info("Service '%s' is SERVING at address '%s'", name, addr)
 		sm.setServiceStatus(name, conn, true)
 
 		// while service is up, wait upInterval, then re-check.

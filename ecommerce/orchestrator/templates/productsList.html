@@ -118,9 +118,9 @@
         {{range .Products}}
         <tr>
             {{if eq $.Role "administrator"}}
-            <td>{{.Code}}</td> <!-- visibile agli admin -->
+            <td>{{.Code}}</td>
             {{else}}
-            <td style="display:none;">{{.Code}}</td> <!-- nascosto per gli altri -->
+            <td style="display:none;">{{.Code}}</td>
             {{end}}
             <td>{{.Name}}</td>
             <td class="center-cell">{{.Size}}</td>

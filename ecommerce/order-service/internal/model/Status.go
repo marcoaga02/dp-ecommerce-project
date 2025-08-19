@@ -9,10 +9,10 @@ type Status struct {
 
 const (
 	StatusUnspecified = 0
-	StatusProcessing = 1
-	StatusShipped = 2
-	StatusDelivered = 3
-	StatusCanceled = 4
+	StatusProcessing  = 1
+	StatusShipped     = 2
+	StatusDelivered   = 3
+	StatusCanceled    = 4
 )
 
 // ModelStatusToProtoStatus converts an int status into pb.Status
@@ -46,4 +46,3 @@ func ProtoStatusToModelStatus(status pb.Status) int {
 		return StatusUnspecified
 	}
 }
-

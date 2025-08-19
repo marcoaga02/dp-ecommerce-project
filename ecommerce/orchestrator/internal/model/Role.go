@@ -46,6 +46,7 @@ func ModelRoleToProtoRole(r Role) pb.Role {
 	}
 }
 
+// String returns the string associated to the model.Role
 func (r Role) String() string {
 	return string(r)
 }
