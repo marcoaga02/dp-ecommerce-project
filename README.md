@@ -14,6 +14,16 @@ Project for the Master Course in Distributed Programming for Web, IoT and Mobile
 ---
 
 # Run the project
+*Quick start: clone the repository and start the services with Docker*
+```bash
+git clone https://github.com/marcoaga02/dp-ecommerce-project.git
+cd dp-ecommerce-project
+make build
+make up
+```
+
+---
+
 From folder's root (*dp-ecommerce-project*):
 - `make build`
     - builds containers and compile protobuf files
@@ -23,16 +33,6 @@ From folder's root (*dp-ecommerce-project*):
     - to stop all docker container
 - `make down`
     - to stop containers and to remove docker volumes and networks from the system
-
----
-
-*Quick start: clone the repository and start the services with Docker*
-```bash
-git clone https://github.com/marcoaga02/dp-ecommerce-project.git
-cd dp-ecommerce-project
-make build
-make up
-```
 
 ---
 
