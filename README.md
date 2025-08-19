@@ -1,5 +1,6 @@
 # dp-ecommerce-project
 A microservices-based ecommerce platform built with Go, gRPC, and Docker
+
 Project for the Master Course in Distributed Programming for Web, IoT and Mobile Systems  
 @Unifi - MSc in Software: Science and Technology
 
