@@ -15,6 +15,12 @@
         text-align: center;
     }
 
+    .form-inline {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
     .add-cart-btn {
         background: #007bff;
         color: white;
@@ -88,8 +94,7 @@
             <td class="center-cell">{{.NumberInCart}}</td>
             <td class="center-cell">{{.Price}} €</td>
             <td class="center-cell">
-                <form action="/app/cart/items" method="POST"
-                    style="display: flex; justify-content: center; align-items: center;">
+                <form action="/app/cart/items" method="POST" class="form-inline">
                     <input type="hidden" name="code" value="{{.Code}}">
                     <input type="number" name="quantity" min="1" max="{{.Available}}" value="1" class="quantity-input"
                         {{if eq .Available 0}}disabled{{end}}>
