@@ -24,7 +24,7 @@ func main() {
 	port := GetEnvOrFatal(myLogger, "GRPC_PORT")
 
 	dsn := fmt.Sprintf(
-		"root:%s@tcp(%s:%s)/%s?parseTime=true",
+		"root:%s@tcp(%s:%s)/%s",
 		GetEnvOrFatal(myLogger, "DB_PASSWORD"),
 		GetEnvOrFatal(myLogger, "DB_HOST"),
 		GetEnvOrFatal(myLogger, "DB_PORT"),

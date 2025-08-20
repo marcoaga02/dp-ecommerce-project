@@ -20,6 +20,25 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o main ./main.go
 
 
+FROM golang:1.23-alpine AS test
+ARG BUILD_MODE=dev
+WORKDIR /app
+
+COPY product-service ./product-service
+COPY proto ./proto
+COPY logger ./logger
+
+WORKDIR /app/product-service
+
+RUN if [ "$BUILD_MODE" = "prod" ]; then \
+  sed -i '/replace.*=>/d' go.mod; \
+  fi
+
+RUN go mod download
+
+CMD ["go", "test", "-v", "./..."]
+
+
 FROM alpine:latest AS run
 
 RUN apk --no-cache add ca-certificates

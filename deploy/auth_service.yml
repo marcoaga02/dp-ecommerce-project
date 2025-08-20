@@ -51,9 +51,60 @@ services:
       - ecommerce_net
     profiles: ["run"]
 
+  # TEST
+
+  auth_test:
+    container_name: ${AUTH_NAME}_test
+    build:
+      context: ../ecommerce
+      dockerfile: auth-service/Dockerfile
+      args:
+        BUILD_MODE: ${BUILD_MODE:-dev}
+      target: test
+    depends_on:
+      auth_test_db:
+        condition: service_healthy
+    expose:
+      - "${GRPC_PORT}"
+    environment:
+      GRPC_PORT: ${GRPC_PORT}
+      DB_HOST: auth_test_db
+      DB_NAME: auth
+      DB_PORT: ${DB_PORT}
+      DB_PASSWORD: ${DB_PASSWORD}
+      LOG_LEVEL: ${LOG_LEVEL}
+    networks:
+      - test_net
+    profiles: ["test"]
+
+  auth_test_db:
+    image: mariadb:latest
+    restart: always
+    expose:
+      - "${DB_PORT}"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ../ecommerce/auth-service/db/initTest.sql:/docker-entrypoint-initdb.d/init.sql
+      - auth_test_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 60s
+      start_interval: 10s
+      interval: 60s
+      timeout: 15s
+      retries: 10
+    networks:
+      - test_net
+    attach: false
+    profiles: ["test"]
+
 networks:
   ecommerce_net:
     name: ecommerce_net
+  test_net:
+    name: test_net
 
 volumes:
   auth_db:
+  auth_test_db:

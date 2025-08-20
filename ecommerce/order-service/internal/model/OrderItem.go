@@ -24,3 +24,17 @@ func ModelOrderItemToProtoOrderItem(item *OrderItem) *pb.OrderItem {
 		Quantity:    item.Quantity,
 	}
 }
+
+// ModelOrderItemListToProtoOrderItemList converts a []*model.OrderItem into a []*pb.OrderItem
+func ModelOrderItemListToProtoOrderItemList(items []*OrderItem) []*pb.OrderItem {
+	if items == nil {
+		return nil
+	}
+
+	pbItems := make([]*pb.OrderItem, 0, len(items))
+	for _, item := range items {
+		pbItems = append(pbItems, ModelOrderItemToProtoOrderItem(item))
+	}
+
+	return pbItems
+}
