@@ -29,13 +29,6 @@ stop:
 down:
 	docker compose --profile run $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) down -v $(target_services)
 
-# PROTO
-build_proto_image:
-	docker compose -f $(YML_DIR)/$(YML_PROTO_COMPILER) build
-
-compile_proto: build_proto_image
-	docker compose -f $(YML_DIR)/$(YML_PROTO_COMPILER) run --rm protoc-builder $(PROTO_FILES)
-
 # TEST
 build_test: down_test compile_proto
 	docker compose --profile test $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) build $(target_services)
@@ -43,8 +36,15 @@ build_test: down_test compile_proto
 test: build_test
 	docker compose --profile test $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) up $(target_services)
 
-stop_test:
-	docker compose --profile test $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) stop $(target_services)
-
 down_test:
 	docker compose --profile test $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) down -v $(target_services)
+
+# PROTO
+build_proto_image:
+	docker compose -f $(YML_DIR)/$(YML_PROTO_COMPILER) build
+
+compile_proto: build_proto_image
+	docker compose -f $(YML_DIR)/$(YML_PROTO_COMPILER) run --rm protoc-builder $(PROTO_FILES)
+
+# REMOVES DOCKER CONTAINERS, VOLUMES AND NETWORKS
+purge: down down_test

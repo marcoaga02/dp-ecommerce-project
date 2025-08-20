@@ -32,9 +32,18 @@ From folder's root (*dp-ecommerce-project*):
 - `make stop`
     - to stop all docker container
 - `make down`
-    - to stop containers and to remove docker volumes and networks from the system
+    - to stop containers and to remove docker containers, volumes and networks from the system
+- `make purge`
+    - removes all docker containers, volumes and networks from the system
 
 ---
+
+# Unit Tests
+From folder's root (*dp-ecommerce-project*):
+- `make test`
+    - builds containers, compile proto files, run tests and after tests execution all containers are automatically stopped
+- `make down_test`
+    - removes from the system all test docker containers, volumes and networks
 
 # The project
 This repository contains an implementation of an ecommerce (online clothing store), in which clients can choose and buy clothes.  
