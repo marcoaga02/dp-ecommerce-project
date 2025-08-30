@@ -1,7 +1,5 @@
 FROM golang:1.23-alpine AS build
 
-ARG BUILD_MODE=dev
-
 WORKDIR /app
 
 COPY orchestrator ./orchestrator
@@ -9,10 +7,6 @@ COPY proto ./proto
 COPY logger ./logger
 
 WORKDIR /app/orchestrator
-
-RUN if [ "$BUILD_MODE" = "prod" ]; then \
-  sed -i '/replace.*=>/d' go.mod; \
-  fi
 
 RUN go mod download
 

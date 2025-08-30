@@ -3,8 +3,6 @@ services:
     build:
       context: ../ecommerce
       dockerfile: orchestrator/Dockerfile
-      args:
-        BUILD_MODE: "${BUILD_MODE:-dev}"
       target: run
     restart: always
     ports:

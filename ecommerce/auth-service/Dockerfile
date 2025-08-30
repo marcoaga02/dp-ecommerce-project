@@ -1,7 +1,5 @@
 FROM golang:1.23-alpine AS build
 
-ARG BUILD_MODE=dev
-
 WORKDIR /app
 
 COPY auth-service ./auth-service
@@ -9,10 +7,6 @@ COPY proto ./proto
 COPY logger ./logger
 
 WORKDIR /app/auth-service
-
-RUN if [ "$BUILD_MODE" = "prod" ]; then \
-  sed -i '/replace.*=>/d' go.mod; \
-  fi
 
 RUN go mod download
 
@@ -21,7 +15,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main ./main.go
 
 
 FROM golang:1.23-alpine AS test
-ARG BUILD_MODE=dev
+
 WORKDIR /app
 
 COPY auth-service ./auth-service
@@ -29,10 +23,6 @@ COPY proto ./proto
 COPY logger ./logger
 
 WORKDIR /app/auth-service
-
-RUN if [ "$BUILD_MODE" = "prod" ]; then \
-  sed -i '/replace.*=>/d' go.mod; \
-  fi
 
 RUN go mod download
 

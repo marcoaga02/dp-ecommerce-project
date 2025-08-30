@@ -4,8 +4,6 @@ services:
     build:
       context: ../ecommerce
       dockerfile: product-service/Dockerfile
-      args:
-        BUILD_MODE: ${BUILD_MODE:-dev}
       target: run
     restart: always
     depends_on:
@@ -58,8 +56,6 @@ services:
     build:
       context: ../ecommerce
       dockerfile: product-service/Dockerfile
-      args:
-        BUILD_MODE: ${BUILD_MODE:-dev}
       target: test
     depends_on:
       product_test_db:
