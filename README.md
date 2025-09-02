@@ -40,7 +40,7 @@ From folder's root (*dp-ecommerce-project*):
 
 # Unit Tests
 From folder's root (*dp-ecommerce-project*):
-- `make test`
+- `make run_test`
     - builds containers, compile proto files, run tests and after tests execution all containers are automatically stopped
 - `make down_test`
     - removes from the system all test docker containers, volumes and networks
@@ -51,15 +51,16 @@ There are two types of users:
 - **Client**: a user who can 
     - browse the product catalogue;
     - add products to the shopping cart;
-    - place oreders;
-    - view the list and details of their orders;;
     - update quantities or remove products from the cart;
+    - place orders;
+    - view the list and details of their orders;
     - cancel an order (if not already canceled or delivered);
     - update their password and profile information.
 - **Administrator**: a user with both admin and client privileges: 
     - *Admin functions*:
         - view the list of registered users;
         - change the role of other users (client <-> admin);
+        - create, edit and delete products;
         - view the list of all orders;
         - see details of each order;
         - update order status (processing -> shipped -> delivered), but cannot cancel orders of other users.

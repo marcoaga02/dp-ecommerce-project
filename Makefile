@@ -33,7 +33,7 @@ down:
 build_test: down_test compile_proto
 	docker compose --profile test $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) build $(target_services)
 
-test: build_test
+run_test: build_test
 	docker compose --profile test $(foreach file,$(YML_FILES),-f $(YML_DIR)/$(file)) up $(target_services)
 
 down_test:
