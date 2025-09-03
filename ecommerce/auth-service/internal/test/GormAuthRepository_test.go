@@ -603,7 +603,7 @@ func TestGetUsersWithTwoUsersInDb(t *testing.T) {
 			}
 		}
 	}
-	if !foundUser1 || ! foundUser2 {
+	if !foundUser1 || !foundUser2 {
 		t.Fatalf("Expected to find both 'user1' and 'user2', but one or both has not been found")
 	}
 }

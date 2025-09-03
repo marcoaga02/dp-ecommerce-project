@@ -36,7 +36,7 @@ type ServiceManager struct {
 //
 // Parameters:
 //   - addresses: map serviceName -> grpc target (e.g. "auth:9000")
-//   - logger: a logger that implements logger.Logger
+//   - lg: a logger that implements logger.Logger
 //   - upInterval: how often to poll a service that is already READY
 //   - downInterval: how often to retry a service that is NOT ready
 //

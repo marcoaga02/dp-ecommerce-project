@@ -44,6 +44,8 @@ From folder's root (*dp-ecommerce-project*):
 From folder's root (*dp-ecommerce-project*):
 - `make run_test`
     - builds containers, compile proto files, run tests and after tests execution all containers are automatically stopped
+- `make stop_test`
+    - to stop all docker container used to run tests
 - `make down_test`
     - removes from the system all test docker containers, volumes and networks
 
@@ -113,6 +115,7 @@ dp-ecommerce-project/
 |
 ├── Agatensi_Marco_Report_DP.pdf
 ├── ArchitecturalDiagram.png
+├── Instructions_To_Run_The_Project.pdf
 ├── Makefile
 └── README.md
 ```

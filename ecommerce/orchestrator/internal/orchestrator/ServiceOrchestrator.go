@@ -303,7 +303,7 @@ func (so *ServiceOrchestrator) GetListOfProductsIntoCart(username string) (bool,
 	return true, model.ProtoCartItemsListToModelCartItemsList(items), nil
 }
 
-// RemoveAllProductsFromCart attempts to remova all the products from the cart of a user
+// RemoveAllProductsFromCart attempts to remove all the products from the cart of a user
 func (so *ServiceOrchestrator) RemoveAllProductsFromCart(username string) (bool, error) {
 	succ, err := so.cartClient.ClearCart(username)
 	if err != nil {
