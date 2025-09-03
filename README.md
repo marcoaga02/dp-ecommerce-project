@@ -23,6 +23,7 @@ make up
 ```
 
 Open a browser and go to http://localhost:3000 to see the web interface of the ecommerce site.  
+
 ---
 
 From folder's root (*dp-ecommerce-project*):
