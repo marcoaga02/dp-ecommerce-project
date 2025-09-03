@@ -107,8 +107,10 @@ dp-ecommerce-project/
 |   ├── product-service/ # module product microservice
 |   ├── orchestrator/ # module orchestrator (grpc clients, orchestrator, service manager, HTTP web server, ...)
 |   ├── logger/ # module logger (custom logger implementation)
-|   └── proto/ # *.proto files
+|   └── proto/ # module with all *.proto files
 |
+├── Agatensi_Marco_Report_DP.pdf
+├── ArchitecturalDiagram.png
 ├── Makefile
 └── README.md
 ```
